@@ -3,5 +3,6 @@ bertviz
 torch
 torchvision
 captum
-git+https://github.com/huggingface/transformers
-transformers[flax]
+langchain-openai
+python-dotenv
+django
