@@ -1,5 +1,29 @@
 from django.shortcuts import render
 
-# Create your views here.
 def upload(request):
+    from transformers import AutoModelForCausalLM, AutoTokenizer
+
+    # Specify the model directory (where you saved your trained model)
+    model_path = "/Users/duminduakalanka/Documents/Oulu/Thesis/saved_model"
+
+    # Load the tokenizer
+    tokenizer = AutoTokenizer.from_pretrained("/Users/duminduakalanka/Documents/Oulu/Thesis/saved_tokenizer")
+
+    # Load the model
+    model = AutoModelForCausalLM.from_pretrained(model_path, device_map="cpu")
+
+    # Sample input text
+    input_text = "10.251.30.85:50010 Starting thread to transfer block blk_-7057732666118938934 to 10.251.106.214:50010"
+
+    # Tokenize the input
+    inputs = tokenizer(input_text, return_tensors="pt")
+
+    # Generate output
+    output = model.generate(**inputs, max_length=50)
+
+    # Decode the output
+    generated_text = tokenizer.decode(output[0], skip_special_tokens=True)
+
+    print("Predicted Output:", generated_text)
+
     return render(request, 'uploader/uploader.html')
