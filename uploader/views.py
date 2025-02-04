@@ -12,9 +12,6 @@ def upload(request):
     # Load the tokenizer
     tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
 
-    # Load the tokenizer
-    tokenizer = AutoTokenizer.from_pretrained("/Users/duminduakalanka/Documents/Oulu/Thesis/saved_tokenizer")
-
     # Load the model
     model = AutoModelForCausalLM.from_pretrained(model_path, device_map="cpu", load_in_8bit=False)
 
