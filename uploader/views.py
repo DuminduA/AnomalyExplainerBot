@@ -10,7 +10,7 @@ def upload(request):
     tokenizer = AutoTokenizer.from_pretrained("/Users/duminduakalanka/Documents/Oulu/Thesis/saved_tokenizer")
 
     # Load the model
-    model = AutoModelForCausalLM.from_pretrained(model_path, device_map="cpu")
+    model = AutoModelForCausalLM.from_pretrained(model_path, device_map="cpu", load_in_8bit=False)
 
     # Sample input text
     input_text = "10.251.30.85:50010 Starting thread to transfer block blk_-7057732666118938934 to 10.251.106.214:50010"
