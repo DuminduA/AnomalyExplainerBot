@@ -1,3 +1,4 @@
+import torch
 from django.shortcuts import render
 import os
 
@@ -13,7 +14,8 @@ def upload(request):
     tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
 
     # Load the model
-    model = AutoModelForCausalLM.from_pretrained(model_path, device_map="cpu", load_in_8bit=False)
+    model = AutoModelForCausalLM.from_pretrained(model_path, torch_dtype=torch.float32, device_map="cpu", load_in_8bit=False)
+    model.to("cpu")
 
     # Sample input text
     input_text = "10.251.30.85:50010 Starting thread to transfer block blk_-7057732666118938934 to 10.251.106.214:50010"
