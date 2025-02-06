@@ -5,6 +5,8 @@ import torch
 from django.shortcuts import render
 import os
 
+torch.device("cpu")
+
 def upload(request):
     from transformers import AutoModelForCausalLM, AutoTokenizer
 
