@@ -126,3 +126,4 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 OPENAI_API_KEY=os.environ.get("OPENAI_API_KEY", None)
+HUGGING_FACE_WRITE_API_KEY=os.environ.get("HUGGING_FACE_WRITE_API_KEY", None)
