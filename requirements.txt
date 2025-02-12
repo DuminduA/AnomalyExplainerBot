@@ -1,8 +1,11 @@
 helm
 bertviz
-torch
-torchvision
 captum
 langchain-openai
 python-dotenv
 django
+torch
+torchaudio
+torchvision
+transformers
+bitsandbytes
