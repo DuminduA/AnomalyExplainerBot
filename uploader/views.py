@@ -1,3 +1,4 @@
+import logging
 import os
 
 from huggingface_hub import login
@@ -8,6 +9,8 @@ os.environ["CUDA_VISIBLE_DEVICES"] = ""
 import torch
 from django.shortcuts import render
 from django.conf import settings
+
+logger = logging.getLogger(__name__)
 
 torch.device("cpu")
 
@@ -33,7 +36,7 @@ def upload(request):
         predicted_class = torch.argmax(logits, dim=-1).item()  # Get class index
 
     # Print results
-    print(f"Predicted Class: {predicted_class}")
+    logger.info(f"Predicted Class: {predicted_class}")
 
 
     return render(request, 'uploader/uploader.html')
