@@ -9,3 +9,4 @@ torchaudio
 torchvision
 transformers
 bitsandbytes
+python-dotenv
