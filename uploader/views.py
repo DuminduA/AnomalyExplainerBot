@@ -1,39 +1,39 @@
 import os
+
+from huggingface_hub import login
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
+
 os.environ["CUDA_VISIBLE_DEVICES"] = ""
 
 import torch
 from django.shortcuts import render
-import os
+from django.conf import settings
 
 torch.device("cpu")
 
 def upload(request):
-    from transformers import AutoModelForCausalLM, AutoTokenizer
+    login(settings.HUGGING_FACE_WRITE_API_KEY)
 
-    # Specify the model directory (where you saved your trained model)
-    # model_path = "/Users/duminduakalanka/Documents/Oulu/Thesis/saved_model"
-    model_path = os.path.expanduser("~/saved_model")
-    tokenizer_path = os.path.expanduser("~/saved_tokenizer")
+    model = AutoModelForSequenceClassification.from_pretrained("Dumi2025/log-anomaly-detection-model")
+    tokenizer = AutoTokenizer.from_pretrained("Dumi2025/log-anomaly-detection-model")
 
-    # Load the tokenizer
-    tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
-
-    # Load the model
-    model = AutoModelForCausalLM.from_pretrained(model_path, torch_dtype=torch.float32, device_map="cpu", load_in_8bit=False)
     model.to("cpu")
+    model.eval()
 
     # Sample input text
     input_text = "10.251.30.85:50010 Starting thread to transfer block blk_-7057732666118938934 to 10.251.106.214:50010"
 
     # Tokenize the input
-    inputs = tokenizer(input_text, return_tensors="pt")
+    inputs = tokenizer(input_text, return_tensors="pt", truncation=True, padding=True)
 
-    # Generate output
-    output = model.generate(**inputs, max_length=50)
+    # Perform classification
+    with torch.no_grad():
+        outputs = model(**inputs)
+        logits = outputs.logits  # Get raw scores
+        predicted_class = torch.argmax(logits, dim=-1).item()  # Get class index
 
-    # Decode the output
-    generated_text = tokenizer.decode(output[0], skip_special_tokens=True)
+    # Print results
+    print(f"Predicted Class: {predicted_class}")
 
-    print("Predicted Output:", generated_text)
 
     return render(request, 'uploader/uploader.html')
