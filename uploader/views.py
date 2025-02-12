@@ -11,7 +11,7 @@ def upload(request):
     from transformers import AutoModelForCausalLM, AutoTokenizer
 
     # Specify the model directory (where you saved your trained model)
-    model_path = "/Users/duminduakalanka/Documents/Oulu/Thesis/saved_model"
+    # model_path = "/Users/duminduakalanka/Documents/Oulu/Thesis/saved_model"
     model_path = os.path.expanduser("~/saved_model")
     tokenizer_path = os.path.expanduser("~/saved_tokenizer")
 
