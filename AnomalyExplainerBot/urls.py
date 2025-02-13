@@ -16,11 +16,19 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from rest_framework.routers import DefaultRouter
 
 from chat import views
+from chat.views import ChatBotViewSet
+from uploader.views import UploaderViewSet
+
+router = DefaultRouter()
+router.register(r'uploader', UploaderViewSet, basename='uploader')
+router.register(r'chat', ChatBotViewSet, basename='chat')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('chat/', include('chat.urls')),
     path('', include('uploader.urls')),
+    path('api/', include(router.urls)),
 ]

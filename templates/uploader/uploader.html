@@ -52,8 +52,7 @@
         </thead>
         <tbody id="tableBody"></tbody>
     </table>
-    <button>Find anomalies</button>
-
+    <button id="filterAnomaliesButton">Find anomalies</button>
 
     <script>
         document.getElementById('csvFileInput').addEventListener('change', function(event) {
@@ -92,6 +91,39 @@
             };
 
             reader.readAsText(file);
+        });
+
+        document.getElementById('filterAnomaliesButton').addEventListener('click', async function() {
+            // Collect log data from table rows (excluding the header)
+            const rows = Array.from(document.querySelectorAll('#tableBody tr'));
+            const logData = rows.map(row => {
+                const cells = row.querySelectorAll('td');
+                return cells.length > 0 ? cells[0].textContent.trim() : ''; // Get only the first cell
+            });
+
+            console.log(logData);
+
+            // Format log data for the request
+            const requestData = {
+                message: "Show anomalies", // You can modify this message if needed
+                log_data: logData // This is the collected data
+            };
+            try {
+                // Send request to the backend to analyze the log data
+                const response = await fetch('/api/uploader/find_anomalies/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestData)
+                });
+
+                // After the request is successful, the backend will render the chat view
+                const data = await response.json();
+
+                // Handle response and display the chat (if needed)
+
+            } catch (error) {
+                console.error("Error fetching GPT response:", error);
+            }
         });
     </script>
 </body>

@@ -91,6 +91,16 @@
             Chatbot
         </div>
         <div class="chat-messages" id="chatMessages">
+            {% if logs %}
+                <div class="message bot">
+                    <span class="text">{{ logs|join:', \n ' }}</span>
+                </div>
+            {% endif %}
+            {% if message %}
+                <div class="message bot">
+                    <span class="text">{{ message }}</span>
+                </div>
+            {% endif %}
             <!-- Messages will be dynamically added here -->
         </div>
         <div class="chat-input">
