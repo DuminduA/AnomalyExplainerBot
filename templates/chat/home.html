@@ -135,17 +135,21 @@
             }, 500);
         }
 
-        function getBotResponse(message) {
-            // Example: simple bot response logic
-            const responses = {
-                hello: "Hi there! How can I help you?",
-                hi: "Hello! What do you need help with?",
-                help: "Sure, what do you need help with?",
-                bye: "Goodbye! Have a great day!"
-            };
+        async function getBotResponse(message) {
+            try {
+                const response = await fetch('/api/chatbot/get_response/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(message)
+                });
 
-            const lowerCaseMessage = message.toLowerCase();
-            return responses[lowerCaseMessage] || "I'm not sure how to respond to that.";
+                const data = await response.json();
+                return data.bot_message
+            } catch (error) {
+                console.error("Error fetching chatbot response:", error);
+                addMessage("Sorry, an error occurred while processing your request.", 'bot');
+            }
+
         }
     </script>
 </body>

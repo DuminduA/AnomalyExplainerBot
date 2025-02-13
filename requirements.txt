@@ -10,3 +10,4 @@ torchvision
 transformers
 bitsandbytes
 python-dotenv
+djangorestframework

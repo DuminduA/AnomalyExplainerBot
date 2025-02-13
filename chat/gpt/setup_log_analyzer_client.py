@@ -4,7 +4,7 @@ from langchain_core.prompts import ChatPromptTemplate, SystemMessagePromptTempla
 from langchain_openai import ChatOpenAI
 
 
-class GPTChat:
+class GPTAnomalyAnalyzer:
     client = openai.OpenAI(api_key=settings.OPENAI_API_KEY)
     model = ChatOpenAI(model='gpt-4o-mini', temperature=0)
 
