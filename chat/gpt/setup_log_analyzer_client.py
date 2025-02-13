@@ -45,15 +45,8 @@ class GPTAnomalyAnalyzer:
         ])
 
         for log in log_data:
-            formatted_prompt = prompt.format_messages(log_data={
-                'anomaly_type': "Unknown",
-                'log_source': "System Logs",
-                'severity': "Medium",
-                'summary': "",
-                'possible_cause': "",
-                'suggested_fix': "",
-                'log_snippet': log
-            })
+            formatted_prompt = prompt.format_messages(log_data=log, anomaly_type="", log_source="", severity="", summary="",
+                                   possible_cause="", suggested_fix="", log_snippet=log)
             response = self.model(formatted_prompt)
             results.append(response.content)
 

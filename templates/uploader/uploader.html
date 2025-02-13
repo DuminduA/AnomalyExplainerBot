@@ -53,7 +53,7 @@
         <tbody id="tableBody"></tbody>
     </table>
     <button id="filterAnomaliesButton">Find anomalies</button>
-
+    <p id="gptResponse"></p>
     <script>
         document.getElementById('csvFileInput').addEventListener('change', function(event) {
             const file = event.target.files[0];
@@ -116,8 +116,12 @@
                     body: JSON.stringify(requestData)
                 });
 
+
                 // After the request is successful, the backend will render the chat view
                 const data = await response.json();
+
+                document.getElementById('gptResponse').textContent = data.message;
+
 
                 // Handle response and display the chat (if needed)
 

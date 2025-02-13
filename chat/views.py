@@ -7,7 +7,7 @@ from chat.gpt.setup_chat_client import GPTChat
 
 def home(request):
     # Need to get the history to load the view
-    return render(request, 'chat/home.html')
+    return render(request, 'chat/home.html', {'message': request.data["gpt_response"], 'logs': request.data["anomaly_logs"]})
 
 
 class ChatBotViewSet(viewsets.ViewSet):

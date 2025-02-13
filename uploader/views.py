@@ -27,10 +27,12 @@ class UploaderViewSet(viewsets.ViewSet):
 
         for log in log_data:
             predicted_class = self.model.classify_log(log)
-            if predicted_class:
+            if predicted_class == 1:
                 anomaly_logs.append(log)
+
+            if len(anomaly_logs) == 0:
+                anomaly_logs.append(log_data[0])
 
         gpt_response = self.client.get_gpt_response(anomaly_logs)
 
-
-        return render(request, 'chat/home.html', {'message': gpt_response, 'logs': anomaly_logs})
+        return Response({'message': gpt_response, 'logs': anomaly_logs})

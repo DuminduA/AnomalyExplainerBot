@@ -147,7 +147,7 @@
 
         async function getBotResponse(message) {
             try {
-                const response = await fetch('/api/chatbot/get_response/', {
+                const response = await fetch('/api/chat/get_response/', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(message)
