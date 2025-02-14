@@ -50,5 +50,5 @@ class GPTAnomalyAnalyzer:
             response = self.model(formatted_prompt)
             results.append(response.content)
 
-        return "\n".join(results)
+        return results
 
