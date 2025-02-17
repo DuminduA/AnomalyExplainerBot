@@ -24,11 +24,11 @@ from uploader.views import UploaderViewSet
 
 router = DefaultRouter()
 router.register(r'uploader', UploaderViewSet, basename='uploader')
-router.register(r'chat', ChatBotViewSet, basename='chat')
+router.register(r'home', ChatBotViewSet, basename='home')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('chat/', include('chat.urls')),
-    path('', include('uploader.urls')),
+    path('', include('chat.urls')),
+    # path('', include('uploader.urls')),
     path('api/', include(router.urls)),
 ]

@@ -1,14 +1,9 @@
-from django.shortcuts import render
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from chat.gpt.setup_log_analyzer_client import GPTAnomalyAnalyzer
 from predictions.predict_results import AnomalyDetectionRobertaModel
-
-
-def upload(request):
-    return render(request, 'uploader/uploader.html')
 
 
 class UploaderViewSet(viewsets.ViewSet):
@@ -33,6 +28,7 @@ class UploaderViewSet(viewsets.ViewSet):
             if len(anomaly_logs) == 0:
                 anomaly_logs.append(log_data[0])
 
-        gpt_response = self.client.get_gpt_response(anomaly_logs)
+        # gpt_response = self.client.get_gpt_response(anomaly_logs)
+        gpt_response = ['A', 'B', 'C']
 
         return Response({'message': gpt_response, 'logs': anomaly_logs})
