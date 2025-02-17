@@ -63,8 +63,9 @@ document.getElementById('filterAnomaliesButton').addEventListener('click', async
             body: JSON.stringify(requestData)
         });
 
-        // After the request is successful, the backend will render the chat view
         const data = await response.json();
+
+        addMessage(data.message, 'bot')
 
         document.getElementById('spinner').hidden = true;
 

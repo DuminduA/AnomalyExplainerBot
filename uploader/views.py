@@ -29,5 +29,7 @@ class UploaderViewSet(viewsets.ViewSet):
                 anomaly_logs.append(log_data[0])
 
         gpt_response = self.client.get_gpt_response(anomaly_logs)
+        if not len(gpt_response):
+            gpt_response.append("No anomalies detected...!!!")
 
         return Response({'message': gpt_response, 'logs': anomaly_logs})

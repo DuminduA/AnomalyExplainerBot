@@ -26,26 +26,32 @@ function sendMessage() {
     // Clear input field
     userInput.value = '';
 
-    // Simulate chatbot response (you'll replace this with a server call)
-    setTimeout(() => {
-        const botResponse = getBotResponse(userMessage);
+    setTimeout(async () => {
+        const botResponse = await getBotResponse(userMessage);
         addMessage(botResponse, 'bot');
     }, 500);
 }
 
 async function getBotResponse(message) {
     try {
-        const response = await fetch('/api/chat/get_response/', {
+        const response = await fetch('/api/chat/chat-with-gpt/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(message)
         });
 
         const data = await response.json();
+        console.log(data)
         return data.bot_message
     } catch (error) {
         console.error("Error fetching chatbot response:", error);
         addMessage("Sorry, an error occurred while processing your request.", 'bot');
     }
-
 }
+
+document.getElementById("userInput").addEventListener("keydown", function(event) {
+    if (event.key === "Enter") {
+        event.preventDefault();
+        sendMessage();
+    }
+});

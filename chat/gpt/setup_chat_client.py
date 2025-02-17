@@ -7,9 +7,7 @@ from langchain_openai import ChatOpenAI
 class GPTChat:
     client = openai.OpenAI(api_key=settings.OPENAI_API_KEY)
     model = ChatOpenAI(model='gpt-4o-mini', temperature=0)
-
-    def __get_system_prompt(self):
-        return """
+    prompt1 = """
                 You are an AI assistant specialized in answering questions strictly related to anomaly log analysis.
                 Your purpose is to help users understand, interpret, and resolve anomalies detected in system logs.
                 
@@ -23,20 +21,23 @@ class GPTChat:
                 "I'm here to assist with log anomaly analysis. Please ask about system logs or detected anomalies."
                 """
 
-    def get_gpt_response(self, log_data: list):
-        results = []
+    prompt2 = """
+                You are an AI assistant specialized in answering questions politely and professionally
+                """
 
+    def __get_system_prompt(self):
+        return self.prompt2
+
+    def get_gpt_response(self, user_query: str):
         prompt = ChatPromptTemplate.from_messages([
             SystemMessagePromptTemplate.from_template(self.__get_system_prompt()),
-            HumanMessagePromptTemplate.from_template("Log Data: {log_data}")
+            HumanMessagePromptTemplate.from_template("User Query: {query}")
         ])
 
-        for log in log_data:
-            formatted_prompt = prompt.format_messages(log_data=log)
-            response = self.model(formatted_prompt)
-            results.append(response.content)
+        formatted_prompt = prompt.format_messages(query=user_query)  # Pass user query
+        response = self.model(formatted_prompt)
 
-        return results
+        return response
 
 
 
