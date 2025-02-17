@@ -38,8 +38,9 @@ document.getElementById('csvFileInput').addEventListener('change', function(even
 
 document.getElementById('filterAnomaliesButton').addEventListener('click', async function() {
 
-    this.style.display = "none";
-    document.getElementById('spinner').style.display = "block";
+    // this.style.display = "none";
+    document.getElementById("filterAnomaliesButton").hidden = true;
+    document.getElementById('spinner').hidden = false;
 
     // Collect log data from table rows (excluding the header)
     const rows = Array.from(document.querySelectorAll('#tableBody tr'));
@@ -50,10 +51,9 @@ document.getElementById('filterAnomaliesButton').addEventListener('click', async
 
     console.log(logData);
 
-    // Format log data for the request
     const requestData = {
-        message: "Show anomalies", // You can modify this message if needed
-        log_data: logData // This is the collected data
+        message: "Show anomalies",
+        log_data: logData
     };
     try {
         // Send request to the backend to analyze the log data
@@ -66,34 +66,10 @@ document.getElementById('filterAnomaliesButton').addEventListener('click', async
         // After the request is successful, the backend will render the chat view
         const data = await response.json();
 
-        const responseContainer = document.getElementById('gptResponse');
-        responseContainer.innerHTML = ""; // Clear previous content
+        document.getElementById('spinner').hidden = true;
 
-        document.getElementById('spinner').style.display = "none";
-
-        data.message.forEach(log => {
-            const logDiv = document.createElement('div');
-            logDiv.classList.add('log-entry'); // Optional class for styling
-            logDiv.innerHTML = `<pre>${log}</pre>`; // Wrap log message in a paragraph
-            responseContainer.appendChild(logDiv);
-            const separator = document.createElement('hr'); // Creates a horizontal line
-            responseContainer.appendChild(separator);
-
-        });
-
-        document.getElementById('spinner').style.display = "none";
-        document.getElementById('AskQuestionBlock').style.display = "flex";
-
-
-        const logString = data.logs.join(',');
-        const botResponseString = data.message.join(',');
-
-        const url = `{% url 'home' %}?list1=${encodeURIComponent(logString)}&list2=${encodeURIComponent(botResponseString)}`
-
-        document.getElementById("ask-question-link").href = url
-
-        console.log(document.getElementById("ask-question-link"))
-        console.log(url)
+        // this.style.display = "flex";
+        document.getElementById("filterAnomaliesButton").hidden = false;
 
     } catch (error) {
         console.error("Error fetching GPT response:", error);

@@ -28,7 +28,6 @@ class UploaderViewSet(viewsets.ViewSet):
             if len(anomaly_logs) == 0:
                 anomaly_logs.append(log_data[0])
 
-        # gpt_response = self.client.get_gpt_response(anomaly_logs)
-        gpt_response = ['A', 'B', 'C']
+        gpt_response = self.client.get_gpt_response(anomaly_logs)
 
         return Response({'message': gpt_response, 'logs': anomaly_logs})

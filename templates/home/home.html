@@ -6,16 +6,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chatbot</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/chatbox.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'css/home.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/spinner.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 <body>
-
-    <div class="AskQuestion" id="AskQuestionBlock">
-        <a id="ask-question-link" href="#"> Ask a Question >></a>
+    <div id="hidden-table" hidden>
+        <table id="csvTable" border="1">
+            <thead>
+                <tr id="tableHead"></tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+        </table>
     </div>
-    <div id="spinner" class="spinner" style="display: none;"></div>
-    <div id="gptResponse"></div>
+
     <div class="chat-container">
         <div class="chat-header">
             Chatbot
@@ -38,6 +43,8 @@
         </div>
         <div class="button-group">
             <input type="file" id="csvFileInput" accept=".csv" name="Upload file">
+            <button id="spinner" class="spinner" hidden></button>
+
             <button id="filterAnomaliesButton">Find anomalies</button>
         </div>
         <br><br>
