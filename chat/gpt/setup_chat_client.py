@@ -1,5 +1,6 @@
 import openai
 from django.conf import settings
+from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_core.prompts import ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate
 from langchain_openai import ChatOpenAI
 
@@ -22,16 +23,27 @@ class GPTChat:
                 """
 
     prompt2 = """
-                You are an AI assistant specialized in answering questions politely and professionally
+                You are an AI assistant specialized in answering questions politely and professionally. 
+                However do not always ask the user for more questions. Just answering the question is enough
                 """
 
     def __get_system_prompt(self):
         return self.prompt2
 
-    def get_gpt_response(self, user_query: str):
+    def get_gpt_response(self, user_query: str, conversation_history: list):
+
+        messages = []
+        for msg in conversation_history:
+            if msg["role"] == "bot":
+                messages.append(SystemMessage(content=msg["content"]))
+            elif msg["role"] == "user":
+                messages.append(HumanMessage(content=msg["content"]))
+
+        messages.append(HumanMessage(content=user_query))
+
         prompt = ChatPromptTemplate.from_messages([
             SystemMessagePromptTemplate.from_template(self.__get_system_prompt()),
-            HumanMessagePromptTemplate.from_template("User Query: {query}")
+            *messages
         ])
 
         formatted_prompt = prompt.format_messages(query=user_query)  # Pass user query

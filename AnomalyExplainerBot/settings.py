@@ -107,7 +107,7 @@ AUTH_PASSWORD_VALIDATORS = [
 SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'  # Store session in cookies
 SESSION_COOKIE_HTTPONLY = True  # Prevent JavaScript from accessing cookies
 SESSION_COOKIE_SECURE = False   # Set to True if using HTTPS
-SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # Keep session after closing browser
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # Keep session after closing browser
 
 
 # Internationalization

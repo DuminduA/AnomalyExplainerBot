@@ -14,7 +14,19 @@ class ChatBotViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['post'], name="chat-with-gpt", url_path="chat-with-gpt")
     def get_response(self, request):
         user_message = request.data
+        conversation_history = request.session.get("chat_history", [])
 
-        response = self.client.get_gpt_response(user_message)
+        response = self.client.get_gpt_response(user_message, conversation_history)
+
+        conversation_history.append({"role": "user", "content": user_message})
+        conversation_history.append({"role": "bot", "content": response.content})
+
+        request.session['chat_history'] = conversation_history
 
         return Response({"bot_message": response.content})
+
+    @action(detail=False, methods=['delete'], name="clear-chat", url_path="clear-chat")
+    def clear_history(self, request):
+        request.session["chat_history"] = []
+
+        return Response({"success": True})

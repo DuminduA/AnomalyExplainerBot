@@ -29,6 +29,13 @@ class UploaderViewSet(viewsets.ViewSet):
                 anomaly_logs.append(log_data[0])
 
         gpt_response = self.client.get_gpt_response(anomaly_logs)
+
+        conversation_history = request.session.get("chat_history", [])
+        conversation_history.append({"role": "user", "content": "\n".join(log_data)})
+        conversation_history.append({"role": "bot", "content": "\n".join(gpt_response)})
+        request.session["chat_history"] = conversation_history
+
+
         if not len(gpt_response):
             gpt_response.append("No anomalies detected...!!!")
 

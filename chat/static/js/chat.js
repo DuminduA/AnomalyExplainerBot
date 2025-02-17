@@ -32,6 +32,20 @@ function sendMessage() {
     }, 500);
 }
 
+async function clearChat() {
+    try {
+        const response = await fetch('/api/chat/clear-chat/', {
+            method: 'DELETE',
+        });
+
+        const data = await response.json();
+        return data.bot_message
+    } catch (error) {
+        console.error("Error deleting history:", error);
+        addMessage("Sorry, an error occurred while processing your request.", 'bot');
+    }
+}
+
 async function getBotResponse(message) {
     try {
         const response = await fetch('/api/chat/chat-with-gpt/', {
