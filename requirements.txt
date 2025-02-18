@@ -11,3 +11,4 @@ transformers
 bitsandbytes
 python-dotenv
 djangorestframework
+mysqlclient
