@@ -29,6 +29,7 @@ router.register(r'chat', ChatBotViewSet, basename='chat')
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('chat.urls')),
-    # path('', include('uploader.urls')),
+    path('login/', include('django.contrib.auth.urls')),
+    path('login/', include('chatusers.urls')),
     path('api/', include(router.urls)),
 ]

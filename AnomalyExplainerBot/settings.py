@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'chat',
     'uploader',
+    'chatusers',
 ]
 
 MIDDLEWARE = [
@@ -85,7 +86,7 @@ DATABASES = {
         "USER": "root",
         "PASSWORD": "dumi-anomaly",
         "HOST": "localhost",
-        "PORT": "3306",
+        "PORT": "3307",
         "OPTIONS": {
             "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
         },
@@ -182,5 +183,5 @@ LOGGING = {
     },
 }
 
-OPENAI_API_KEY=os.environ.get("OPENAI_API_KEY", None)
-HUGGING_FACE_WRITE_API_KEY=os.environ.get("HUGGING_FACE_WRITE_API_KEY", None)
+OPENAI_API_KEY=os.environ.get("OPENAI_API_KEY", 'test')
+HUGGING_FACE_WRITE_API_KEY=os.environ.get("HUGGING_FACE_WRITE_API_KEY", 'test')
