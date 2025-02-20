@@ -36,6 +36,19 @@ document.getElementById('csvFileInput').addEventListener('change', function(even
     reader.readAsText(file);
 });
 
+function getCSRFToken() {
+    let cookieValue = null;
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.startsWith('csrftoken=')) {
+            cookieValue = cookie.substring('csrftoken='.length, cookie.length);
+            break;
+        }
+    }
+    return cookieValue;
+}
+
 document.getElementById('filterAnomaliesButton').addEventListener('click', async function() {
 
     // this.style.display = "none";
@@ -59,7 +72,10 @@ document.getElementById('filterAnomaliesButton').addEventListener('click', async
         // Send request to the backend to analyze the log data
         const response = await fetch('/api/uploader/find_anomalies/', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            },
             body: JSON.stringify(requestData)
         });
 

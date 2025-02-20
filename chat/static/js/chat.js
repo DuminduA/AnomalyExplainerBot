@@ -36,6 +36,9 @@ async function clearChat() {
     try {
         const response = await fetch('/api/chat/clear-chat/', {
             method: 'DELETE',
+            headers: {
+                'X-CSRFToken': getCSRFToken()
+            }
         });
 
         const data = await response.json();
@@ -50,7 +53,7 @@ async function getBotResponse(message) {
     try {
         const response = await fetch('/api/chat/chat-with-gpt/', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRFToken() },
             body: JSON.stringify(message)
         });
 

@@ -121,6 +121,12 @@ SESSION_COOKIE_SECURE = False   # Set to True if using HTTPS
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # Keep session after closing browser
 
 
+CSRF_COOKIE_HTTPONLY = False  # Must be False to read CSRF token in JavaScript
+CSRF_COOKIE_SECURE = False  # Set to True in production with HTTPS
+CSRF_USE_SESSIONS = False  # If True, CSRF token is stored in sessions, not cookies
+CSRF_TRUSTED_ORIGINS = ['http://localhost:8000', 'https://yourdomain.com']  # Add your domain
+
+
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
