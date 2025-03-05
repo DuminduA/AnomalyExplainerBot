@@ -2,10 +2,14 @@ import openai
 from django.conf import settings
 from langchain_core.prompts import ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate
 from langchain_openai import ChatOpenAI
+from langsmith import traceable
 
+from langsmith.wrappers import wrap_openai
 
+@traceable
 class GPTAnomalyAnalyzer:
-    client = openai.OpenAI(api_key=settings.OPENAI_API_KEY)
+
+    client = wrap_openai(openai.OpenAI(api_key=settings.OPENAI_API_KEY))
     model = ChatOpenAI(model='gpt-4o-mini', temperature=0)
 
     def __get_system_prompt(self):
@@ -47,7 +51,7 @@ class GPTAnomalyAnalyzer:
         for log in log_data:
             formatted_prompt = prompt.format_messages(log_data=log, anomaly_type="", log_source="", severity="", summary="",
                                    possible_cause="", suggested_fix="", log_snippet=log)
-            response = self.model(formatted_prompt)
+            response = self.model.invoke(formatted_prompt)
             results.append(response.content)
 
         return results

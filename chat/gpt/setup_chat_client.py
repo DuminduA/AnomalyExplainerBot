@@ -3,11 +3,13 @@ from django.conf import settings
 from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_core.prompts import ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate
 from langchain_openai import ChatOpenAI
+from langsmith import traceable
 
 
+@traceable
 class GPTChat:
     client = openai.OpenAI(api_key=settings.OPENAI_API_KEY)
-    model = ChatOpenAI(model='gpt-4o-mini', temperature=0)
+    model = ChatOpenAI(model='gpt-4o', temperature=0)
     prompt1 = """
                 You are an AI assistant specialized in answering questions strictly related to anomaly log analysis.
                 Your purpose is to help users understand, interpret, and resolve anomalies detected in system logs.
@@ -47,7 +49,7 @@ class GPTChat:
         ])
 
         formatted_prompt = prompt.format_messages(query=user_query)  # Pass user query
-        response = self.model(formatted_prompt)
+        response = self.model.invoke(formatted_prompt)
 
         return response
 

@@ -12,3 +12,6 @@ bitsandbytes
 python-dotenv
 djangorestframework
 mysqlclient
+langsmith
+langchain-openai
+openai

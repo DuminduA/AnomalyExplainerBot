@@ -191,3 +191,10 @@ LOGGING = {
 
 OPENAI_API_KEY=os.environ.get("OPENAI_API_KEY", 'test')
 HUGGING_FACE_WRITE_API_KEY=os.environ.get("HUGGING_FACE_WRITE_API_KEY", 'test')
+
+LANGSMITH_TRACING_V2=True
+LANGSMITH_TRACING=True
+LANGSMITH_ENDPOINT="https://api.smith.langchain.com"
+LANGSMITH_API_KEY=os.environ.get("LANGSMITH_API_KEY", 'test')
+LANGCHAIN_API_KEY=os.environ.get("LANGCHAIN_API_KEY", 'test')
+LANGSMITH_PROJECT="log-anomaly-detection-langsmith"
