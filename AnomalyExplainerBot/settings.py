@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'chat',
     'uploader',
     'chatusers',
+    'visualization',
 ]
 
 MIDDLEWARE = [

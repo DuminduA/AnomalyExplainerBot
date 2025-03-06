@@ -15,3 +15,5 @@ mysqlclient
 langsmith
 langchain-openai
 openai
+matplotlib
+ipython==7.34.0

@@ -21,6 +21,7 @@ from rest_framework.routers import DefaultRouter
 from chat import views
 from chat.views import ChatBotViewSet
 from uploader.views import UploaderViewSet
+from visualization.views import bert_attention_view
 
 router = DefaultRouter()
 router.register(r'uploader', UploaderViewSet, basename='uploader')
@@ -32,4 +33,5 @@ urlpatterns = [
     path('login/', include('django.contrib.auth.urls')),
     path('login/', include('chatusers.urls')),
     path('api/', include(router.urls)),
+    path('bert-visualization/', bert_attention_view, name='bert_visualization'),
 ]

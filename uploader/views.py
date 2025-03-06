@@ -18,15 +18,19 @@ class UploaderViewSet(viewsets.ViewSet):
         if not log_data:
             return Response({"error": "No log data provided."}, status=status.HTTP_400_BAD_REQUEST)
 
+        self.model.clear_attentions()
         anomaly_logs = []
 
         for log in log_data:
             predicted_class = self.model.classify_log(log)
             if predicted_class == 1:
+                print(f"Anomaly detected {log}")
                 anomaly_logs.append(log)
+            else:
+                print(f"Not an Anomaly {log} {predicted_class}")
 
-            if len(anomaly_logs) == 0:
-                anomaly_logs.append(log_data[0])
+        if len(anomaly_logs) == 0:
+            anomaly_logs.append(log_data[0])
 
         gpt_response = self.client.get_gpt_response(anomaly_logs)
 
