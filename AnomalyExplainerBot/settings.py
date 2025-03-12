@@ -22,7 +22,7 @@ dotenv.load_dotenv()
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-b1ta%a=odd0@pi*t34rs=bw@m-b(3cib0j6ffhhk)6(ef7*vhg'
+SECRET_KEY = os.environ.get('DJANGO_SECRET', None)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -83,9 +83,9 @@ WSGI_APPLICATION = 'AnomalyExplainerBot.wsgi.application'
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
-        "NAME": "ANOMALY_LOG_CHAT_DB",
-        "USER": "root",
-        "PASSWORD": "dumi-anomaly",
+        "NAME": os.environ.get('DB_NAME'),
+        "USER": os.environ.get('DB_USER'),
+        "PASSWORD": os.environ.get('DB_PASS'),
         "HOST": "localhost",
         "PORT": "3307",
         "OPTIONS": {
