@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>BERT Attention Visualization</title>
+    <style>
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+        .graph-item {
+            border: 1px solid #ccc;
+            padding: 10px;
+            background: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    <h2>BERT Attention Visualization</h2>
+
+    <label for="logDropdown"><strong>Anomaly Logs:</strong></label>
+    <select id="logDropdown" onchange="updateLogDisplay()">
+        {% for log in logs %}
+            <option value="log_{{ forloop.counter }}">{{ log }}</option>
+        {% endfor %}
+    </select>
+
+    <div class="grid-container">
+        {% for graph in graphs %}
+            <div class="graph-item">
+                {{ graph | safe }}
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="grid-container">
+        {% for mv in model_view %}
+            <div>
+                {{ mv | safe }}
+            </div>
+        {% endfor %}
+    </div>
+
+    <script>
+        function updateLogDisplay() {
+            var dropdown = document.getElementById("logDropdown");
+            var selectedValue = dropdown.value;
+            var logs = {{ logs|safe }};
+
+            var logIndex = parseInt(selectedValue.split("_")[1]) - 1;
+            document.getElementById("logDisplay").innerText = logs[logIndex];
+        }
+    </script>
+
+</body>
+</html>
