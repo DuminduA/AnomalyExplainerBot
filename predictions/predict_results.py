@@ -17,10 +17,10 @@ class AnomalyDetectionRobertaModel:
         self.attentions = []
 
     def load_model(self):
-        login(settings.HUGGING_FACE_WRITE_API_KEY)
+        # login(settings.HUGGING_FACE_WRITE_API_KEY)
 
-        model = RobertaForSequenceClassification.from_pretrained("Dumi2025/log-anomaly-detection-model")
-        tokenizer = RobertaTokenizerFast.from_pretrained("Dumi2025/log-anomaly-detection-model")
+        model = RobertaForSequenceClassification.from_pretrained("Dumi2025/log-anomaly-detection-model", token=settings.HUGGING_FACE_WRITE_API_KEY)
+        tokenizer = RobertaTokenizerFast.from_pretrained("Dumi2025/log-anomaly-detection-model", token=settings.HUGGING_FACE_WRITE_API_KEY)
 
         model.to("cpu")
         model.eval()

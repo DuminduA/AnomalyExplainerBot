@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log Interpretation</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <h2>Log Token Attributions</h2>
+    <input type="text" id="logInput" placeholder="Enter a log message" style="width: 60%;">
+    <button onclick="fetchAttributions()">Analyze</button>
+
+    <canvas id="attributionChart"></canvas>
+
+    <script>
+        async function fetchAttributions() {
+            let logText = document.getElementById("logInput").value;
+            let response = await fetch(`/interpret_log?log=${encodeURIComponent(logText)}`);
+            let data = await response.json();
+
+            let ctx = document.getElementById("attributionChart").getContext("2d");
+
+            // Destroy old chart if exists
+            if (window.myChart) {
+                window.myChart.destroy();
+            }
+
+            // Create new Chart.js bar chart
+            window.myChart = new Chart(ctx, {
+                type: "bar",
+                data: {
+                    labels: data.tokens,
+                    datasets: [{
+                        label: "Attribution Score",
+                        data: data.attributions,
+                        backgroundColor: "rgba(54, 162, 235, 0.6)"
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: { beginAtZero: true },
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>

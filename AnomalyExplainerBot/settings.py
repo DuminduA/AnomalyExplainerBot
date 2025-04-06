@@ -27,7 +27,7 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET', None)
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["193.166.25.44", "localhost"]
+ALLOWED_HOSTS = ["193.166.25.44", "localhost", "127.0.0.1"]
 
 
 # Application definition
@@ -79,21 +79,27 @@ WSGI_APPLICATION = 'AnomalyExplainerBot.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.mysql",
+#         "NAME": os.environ.get('DB_NAME'),
+#         "USER": os.environ.get('DB_USER'),
+#         "PASSWORD": os.environ.get('DB_PASS'),
+#         "HOST": "localhost",
+#         "PORT": "3307",
+#         "OPTIONS": {
+#             "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
+#         },
+#         "TEST": {
+#             "NAME": "mytestdatabase",  # Test database name
+#         },
+#     }
+# }
 
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.mysql",
-        "NAME": os.environ.get('DB_NAME'),
-        "USER": os.environ.get('DB_USER'),
-        "PASSWORD": os.environ.get('DB_PASS'),
-        "HOST": "localhost",
-        "PORT": "3307",
-        "OPTIONS": {
-            "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
-        },
-        "TEST": {
-            "NAME": "mytestdatabase",  # Test database name
-        },
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / "db.sqlite3",
     }
 }
 
