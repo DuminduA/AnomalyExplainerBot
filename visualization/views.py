@@ -2,7 +2,7 @@ from django.http import JsonResponse
 from django.shortcuts import render
 from bertviz import head_view, model_view
 from uploader.views import UploaderViewSet
-import numpy as np
+import re, json
 import matplotlib.pyplot as plt
 
 model = UploaderViewSet.model
@@ -98,6 +98,7 @@ def get_bertviz_visualizations(attentions, inputs):
     tokens = model.tokenizer.convert_ids_to_tokens(inputs.get('input_ids')[0])
 
     html = head_view(attentions, tokens, html_action="return")
+    convert_bertviz_head_view_to_json_data(html.data)
     return html, ' '.join(tokens)
 
 def get_model_visualization(attentions, inputs):
@@ -105,6 +106,30 @@ def get_model_visualization(attentions, inputs):
 
     html = model_view(attentions, tokens, html_action="return")
     return html
+
+def convert_bertviz_head_view_to_json_data(head_view_html):
+    # This is looking for a params variable exactly, fragile way to pull the data, but continuing for now
+    match = re.search(r'const\s+params\s*=\s*({.*?})\s*;', head_view_html, re.DOTALL)
+
+    if match:
+        params_str = match.group(1)
+
+        try:
+            params = json.loads(params_str)
+            print("Successfully parsed params!")
+
+            attentions = params["attention"][0]
+            attentions.pop("name")
+            attentions.pop("right_text")
+            attentions["tokens"] = attentions.pop("left_text")
+
+            return attentions
+        except json.JSONDecodeError as e:
+            print("Couldn't parse params JSON:", e)
+    else:
+        print("Couldn't find 'params' in the HTML.")
+        return None
+
 
 
 
