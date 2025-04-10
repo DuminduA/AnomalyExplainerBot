@@ -5,13 +5,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatbot</title>
+    <title>Log anomaly detector</title>
     <link rel="stylesheet" type="text/css" href="{% static 'css/chatbox.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'css/home.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'css/spinner.css' %}">
+{#    <link rel="stylesheet" type="text/css" href="{% static 'css/sidebar.css' %}">#}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 <body>
+{#  <div class="sidebar">#}
+{#    <a href="#">Home</a>#}
+{#    <a href="#">Dashboard</a>#}
+{#    <a href="#">Settings</a>#}
+{#    <a href="#">Logout</a>#}
+{#  </div>#}
     <div id="hidden-table" hidden>
         <table id="csvTable" border="1">
             <thead>
@@ -47,13 +54,18 @@
             <button id="spinner" class="spinner" hidden></button>
 
             <button id="filterAnomaliesButton">Find anomalies</button>
-            <button id="clearChat" style="color: #ffffff; background: #e00f0f; padding: 10px" onclick="clearChat()">Clear History</button>
-            <button id="viz" style="color: #ffffff; background: #0f32e0; padding: 10px" onclick="visualize_bert()">Visualizations</button>
+            <button id="clearChat" style="color: #ffffff; background: #e00f0f; padding: 1.2em 2em; border-radius: 8px;" onclick="clearChat()">Clear History</button>
+            <button id="viz" style="color: #ffffff; background: #0f32e0; padding: 1.2em 2em; border-radius: 8px;" onclick="visualize_bert()">Visualizations</button>
+{#            <button id="feedback" style="color: #ffffff; background: #d7ae28; padding: 10px" onclick="give_feedback()">Feedback</button>#}
+            <button formsappId="67f1ce68cf251a000254a395"></button>
+
         </div>
         <br><br>
     </div>
+
     <script src="{% static 'js/upload.js' %}"></script>
     <script src="{% static 'js/chat.js' %}"></script>
     <script src="{% static 'js/visualize.js' %}"></script>
+    <script src="https://forms.app/cdn/embed.js" type="text/javascript" async defer onload="new formsapp('67f1ce68cf251a000254a395', 'popup', {'overlay':'rgba(45,45,45,0.5)','button':{'color':'#fc9a22', 'textColor': '#ffffff', 'text':'Feedback', 'padding': '0'},'width':'70vw','height':'90vh','openingAnimation':{'entrance':'animate__fadeIn','exit':'animate__fadeOut'}}, 'https://0uvzsbsa.forms.app');"></script>
 </body>
 </html>

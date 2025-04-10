@@ -58,7 +58,9 @@ tr:nth-child(even) {
     justify-content: center;
     background-color: green;
     color: aliceblue;
-    padding: 10px;
+    padding: 1.2em 2em;
+    border-radius: 8px;
+
 }
 pre {
     text-align: left;
@@ -66,4 +68,9 @@ pre {
 
 .button-group {
     flex-direction: row;
+}
+
+.button-group button{
+    font-size: 12px;
+    font-weight: 600;
 }
