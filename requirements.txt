@@ -16,5 +16,4 @@ langchain-openai
 openai
 matplotlib
 ipython==7.34.0
-pymongo==4.11.3
-mongoengine==0.29.1
+mongoengine

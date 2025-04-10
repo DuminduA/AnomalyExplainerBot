@@ -205,3 +205,6 @@ LANGSMITH_ENDPOINT="https://api.smith.langchain.com"
 LANGSMITH_API_KEY=os.environ.get("LANGSMITH_API_KEY", 'test')
 LANGCHAIN_API_KEY=os.environ.get("LANGCHAIN_API_KEY", 'test')
 LANGSMITH_PROJECT="log-anomaly-detection-langsmith"
+
+from mongoengine import connect
+connect('anomaly-bot-db', host='localhost', port=27017)

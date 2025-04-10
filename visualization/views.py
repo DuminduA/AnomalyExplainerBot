@@ -5,6 +5,8 @@ from uploader.views import UploaderViewSet
 import re, json
 import matplotlib.pyplot as plt
 
+from visualization.models import AttentionData
+
 model = UploaderViewSet.model
 
 def bert_attention_view(request):
@@ -98,7 +100,7 @@ def get_bertviz_visualizations(attentions, inputs):
     tokens = model.tokenizer.convert_ids_to_tokens(inputs.get('input_ids')[0])
 
     html = head_view(attentions, tokens, html_action="return")
-    convert_bertviz_head_view_to_json_data(html.data)
+    save_bertviz_head_view(html.data)
     return html, ' '.join(tokens)
 
 def get_model_visualization(attentions, inputs):
@@ -107,7 +109,7 @@ def get_model_visualization(attentions, inputs):
     html = model_view(attentions, tokens, html_action="return")
     return html
 
-def convert_bertviz_head_view_to_json_data(head_view_html):
+def save_bertviz_head_view(head_view_html):
     # This is looking for a params variable exactly, fragile way to pull the data, but continuing for now
     match = re.search(r'const\s+params\s*=\s*({.*?})\s*;', head_view_html, re.DOTALL)
 
@@ -122,6 +124,9 @@ def convert_bertviz_head_view_to_json_data(head_view_html):
             attentions.pop("name")
             attentions.pop("right_text")
             attentions["tokens"] = attentions.pop("left_text")
+
+            attention_data = AttentionData(tokens=attentions["tokens"], attn=attentions["attn"])
+            attention_data.save()
 
             return attentions
         except json.JSONDecodeError as e:

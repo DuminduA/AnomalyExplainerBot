@@ -1,9 +1,12 @@
+import uuid
+
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from chat.gpt.setup_log_analyzer_client import GPTAnomalyAnalyzer
 from predictions.predict_results import AnomalyDetectionRobertaModel
+from visualization.models import AnomalyFindCounter
 
 
 class UploaderViewSet(viewsets.ViewSet):
@@ -42,5 +45,7 @@ class UploaderViewSet(viewsets.ViewSet):
 
         if not len(gpt_response):
             gpt_response.append("No anomalies detected...!!!")
+
+        AnomalyFindCounter(name=str(uuid.uuid4()), counter=AnomalyFindCounter.get_global_max_counter_value() + 1).save()
 
         return Response({'message': gpt_response, 'logs': anomaly_logs})

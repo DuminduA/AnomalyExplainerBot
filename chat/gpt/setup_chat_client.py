@@ -1,3 +1,5 @@
+import re
+
 import openai
 from django.conf import settings
 from langchain_core.messages import SystemMessage, HumanMessage
@@ -7,6 +9,7 @@ from langsmith import traceable
 import langsmith
 
 from setup_langsmith_client import get_langsmith_client
+from visualization.models import AttentionData
 
 langsmith.debug = True
 
@@ -46,6 +49,9 @@ class GPTChat:
             elif msg["role"] == "user":
                 messages.append(HumanMessage(content=msg["content"]))
 
+        if "Explain Bertviz" in user_query:
+            user_query = self.explain_bertviz(user_query)
+
         messages.append(HumanMessage(content=user_query))
 
         prompt = ChatPromptTemplate.from_messages([
@@ -57,6 +63,31 @@ class GPTChat:
         response = self.model.invoke(formatted_prompt)
 
         return response
+
+    def explain_bertviz(self, user_query):
+        pattern = r"layer\s+(\d+).*?token\s+(\d+)"
+        match = re.search(pattern, user_query, re.IGNORECASE)
+
+        if match:
+            layer_number = int(match.group(1))
+            token_number = int(match.group(2))
+            print(f"Layer: {layer_number}, Token: {token_number}")
+
+            attentions = AttentionData.objects().order_by('-counter').first()
+
+            new_user_query = f"""Explain what the attention pattern shows for layer {layer_number}, head {token_number} 
+            for token {attentions.tokens}. Attention data related to this is {attentions.attn[layer_number][token_number]}. 
+            Do not explain what Bertviz is and what is it used for. User is aware of the tool. 
+            It is not required to show the token sequence back to the user. 
+            Go deep into the attentions and tokens given and try to explain them as best as you can. 
+            Do not include practical uses of it. User is more focused on identifying how the model inferred the results.
+            Use attention data given for the layer to identify how the model calculated its final result.
+            """
+
+            return new_user_query
+
+        else:
+            print("Could not find layer or token number.")
 
 
 
