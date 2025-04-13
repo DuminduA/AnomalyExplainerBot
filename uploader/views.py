@@ -11,7 +11,7 @@ from visualization.models import AnomalyFindCounter
 
 class UploaderViewSet(viewsets.ViewSet):
     client = GPTAnomalyAnalyzer()
-    model = AnomalyDetectionRobertaModel()
+    anomaly_detect_model_class = AnomalyDetectionRobertaModel()
 
     @action(detail=False, methods=['post'])
     def find_anomalies(self, request):
@@ -21,11 +21,11 @@ class UploaderViewSet(viewsets.ViewSet):
         if not log_data:
             return Response({"error": "No log data provided."}, status=status.HTTP_400_BAD_REQUEST)
 
-        self.model.clear_attentions()
+        self.anomaly_detect_model_class.clear_attentions()
         anomaly_logs = []
 
         for log in log_data:
-            predicted_class = self.model.classify_log(log)
+            predicted_class = self.anomaly_detect_model_class.classify_log(log)
             if predicted_class == 1:
                 print(f"Anomaly detected {log}")
                 anomaly_logs.append(log)

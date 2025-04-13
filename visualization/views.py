@@ -7,18 +7,18 @@ import matplotlib.pyplot as plt
 
 from visualization.models import AttentionData
 
-model = UploaderViewSet.model
+anomaly_detect_model_class = UploaderViewSet.anomaly_detect_model_class
 
 def bert_attention_view(request):
     if request.method == "GET":
         print("Bertviz visualization...")
-        if len(model.attentions):
+        if len(anomaly_detect_model_class.attentions):
 
             html_str_collection = []
             model_view_str_collection = []
             logs = []
 
-            for a in model.attentions:
+            for a in anomaly_detect_model_class.attentions:
                 inputs = a['inputs']
                 attentions = a['attentions']
 
@@ -38,14 +38,14 @@ def bert_attention_view(request):
         return render(request, "visualizations/bertviz.html", {"graphs": "<h1>Could not generate the graphs</h1>", 'model_view': "", 'logs': ""})
 
 def get_bertviz_visualizations(attentions, inputs):
-    tokens = model.tokenizer.convert_ids_to_tokens(inputs.get('input_ids')[0])
+    tokens = anomaly_detect_model_class.tokenizer.convert_ids_to_tokens(inputs.get('input_ids')[0])
 
     html = head_view(attentions, tokens, html_action="return")
     save_bertviz_head_view(html.data)
     return html, ' '.join(tokens)
 
 def get_model_visualization(attentions, inputs):
-    tokens = model.tokenizer.convert_ids_to_tokens(inputs.get('input_ids')[0])
+    tokens = anomaly_detect_model_class.tokenizer.convert_ids_to_tokens(inputs.get('input_ids')[0])
 
     html = model_view(attentions, tokens, html_action="return")
     return html
@@ -80,23 +80,23 @@ def save_bertviz_head_view(head_view_html):
 
 from captum.attr import IntegratedGradients
 
-ig = IntegratedGradients(model.model)
+ig = IntegratedGradients(anomaly_detect_model_class.model)
 def captum_attention_view(request):
     if request.method == "GET":
         print("Captum visualization...")
-        if len(model.attentions):
+        if len(anomaly_detect_model_class.attentions):
 
             html_str_collection = []
             model_view_str_collection = []
             logs = []
 
-            for a in model.attentions:
+            for a in anomaly_detect_model_class.attentions:
                 inputs = a['inputs']
                 attentions = a['attentions']
                 input_ids = inputs['input_ids'].long()
                 attributions = ig.attribute(input_ids, target=1)
 
-                tokens = model.tokenizer.convert_ids_to_tokens(inputs[0])
+                tokens = anomaly_detect_model_class.tokenizer.convert_ids_to_tokens(inputs[0])
 
                 # Normalize attributions
                 attributions = attributions.squeeze().detach().numpy()
@@ -115,7 +115,7 @@ def captum_attention_view(request):
         return render(request, "visualizations/captum.html", {"graphs": "<h1>Could not generate the graphs</h1>", 'model_view': "", 'logs': ""})
 
 def preprocess_log(log_text):
-    inputs = model.tokenizer(log_text, return_tensors="pt", padding=True, truncation=True, max_length=512)
+    inputs = anomaly_detect_model_class.tokenizer(log_text, return_tensors="pt", padding=True, truncation=True, max_length=512)
     return inputs.input_ids, inputs.attention_mask
 def interpret_log(request):
     log_text = request.GET.get("log", "ERROR: Connection timeout after multiple retries.")
@@ -124,14 +124,14 @@ def interpret_log(request):
     input_ids, attention_mask = preprocess_log(log_text)
 
     # Compute attributions
-    ig = IntegratedGradients(model)
+    ig = IntegratedGradients(anomaly_detect_model_class)
     attributions = ig.attribute(input_ids, target=1).squeeze().detach().numpy()
 
     # Normalize attributions
     attributions = (attributions - attributions.min()) / (attributions.max() - attributions.min())
 
     # Convert tokens and attributions to JSON format
-    tokens = model.tokenizer.convert_ids_to_tokens(input_ids[0])
+    tokens = anomaly_detect_model_class.tokenizer.convert_ids_to_tokens(input_ids[0])
     data = {"tokens": tokens, "attributions": attributions.tolist()}
 
     return JsonResponse(data)
