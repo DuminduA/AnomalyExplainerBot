@@ -32,8 +32,8 @@ class UploaderViewSet(viewsets.ViewSet):
             else:
                 print(f"Not an Anomaly {log} {predicted_class}")
 
-        if len(anomaly_logs) == 0:
-            anomaly_logs.append(log_data[0])
+        # if len(anomaly_logs) == 0:
+        #     anomaly_logs.append(log_data[0])
 
         gpt_response = self.client.get_gpt_response(anomaly_logs)
 
@@ -46,6 +46,6 @@ class UploaderViewSet(viewsets.ViewSet):
         if not len(gpt_response):
             gpt_response.append("No anomalies detected...!!!")
 
-        AnomalyFindCounter(name=str(uuid.uuid4()), counter=AnomalyFindCounter.get_global_max_counter_value() + 1).save()
+        AnomalyFindCounter(name=str(uuid.uuid4()), counter=AnomalyFindCounter.get_global_max_counter_value() or 0 + 1).save()
 
         return Response({'message': gpt_response, 'logs': anomaly_logs})
