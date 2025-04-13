@@ -1,0 +1,30 @@
+body {
+      margin: 0;
+      font-family: sans-serif;
+      display: flex;
+    }
+
+    .sidebar {
+      width: 200px;
+      height: 100vh;
+      background-color: #f4f4f4;
+      padding: 20px;
+      box-sizing: border-box;
+      border-right: 1px solid #ccc;
+    }
+
+    .sidebar a {
+      display: block;
+      color: #333;
+      text-decoration: none;
+      margin: 10px 0;
+    }
+
+    .sidebar a:hover {
+      text-decoration: underline;
+    }
+
+    .content {
+      flex: 1;
+      padding: 20px;
+    }

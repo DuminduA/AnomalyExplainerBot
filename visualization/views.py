@@ -37,6 +37,46 @@ def bert_attention_view(request):
             return render(request, "visualizations/bertviz.html", {"graphs": html_str_collection, 'model_view': model_view_str_collection, 'logs': logs})
         return render(request, "visualizations/bertviz.html", {"graphs": "<h1>Could not generate the graphs</h1>", 'model_view': "", 'logs': ""})
 
+def get_bertviz_visualizations(attentions, inputs):
+    tokens = model.tokenizer.convert_ids_to_tokens(inputs.get('input_ids')[0])
+
+    html = head_view(attentions, tokens, html_action="return")
+    save_bertviz_head_view(html.data)
+    return html, ' '.join(tokens)
+
+def get_model_visualization(attentions, inputs):
+    tokens = model.tokenizer.convert_ids_to_tokens(inputs.get('input_ids')[0])
+
+    html = model_view(attentions, tokens, html_action="return")
+    return html
+
+def save_bertviz_head_view(head_view_html):
+    # This is looking for a params variable exactly, fragile way to pull the data, but continuing for now
+    match = re.search(r'const\s+params\s*=\s*({.*?})\s*;', head_view_html, re.DOTALL)
+
+    if match:
+        params_str = match.group(1)
+
+        try:
+            params = json.loads(params_str)
+            print("Successfully parsed params!")
+
+            attentions = params["attention"][0]
+            attentions.pop("name")
+            attentions.pop("right_text")
+            attentions["tokens"] = attentions.pop("left_text")
+
+            attention_data = AttentionData(tokens=attentions["tokens"], attn=attentions["attn"])
+            attention_data.save()
+
+            return attentions
+        except json.JSONDecodeError as e:
+            print("Couldn't parse params JSON:", e)
+    else:
+        print("Couldn't find 'params' in the HTML.")
+        return None
+
+
 
 from captum.attr import IntegratedGradients
 
@@ -53,8 +93,8 @@ def captum_attention_view(request):
             for a in model.attentions:
                 inputs = a['inputs']
                 attentions = a['attentions']
-
-                attributions = ig.attribute(inputs, target=1)
+                input_ids = inputs['input_ids'].long()
+                attributions = ig.attribute(input_ids, target=1)
 
                 tokens = model.tokenizer.convert_ids_to_tokens(inputs[0])
 
@@ -95,45 +135,6 @@ def interpret_log(request):
     data = {"tokens": tokens, "attributions": attributions.tolist()}
 
     return JsonResponse(data)
-
-def get_bertviz_visualizations(attentions, inputs):
-    tokens = model.tokenizer.convert_ids_to_tokens(inputs.get('input_ids')[0])
-
-    html = head_view(attentions, tokens, html_action="return")
-    save_bertviz_head_view(html.data)
-    return html, ' '.join(tokens)
-
-def get_model_visualization(attentions, inputs):
-    tokens = model.tokenizer.convert_ids_to_tokens(inputs.get('input_ids')[0])
-
-    html = model_view(attentions, tokens, html_action="return")
-    return html
-
-def save_bertviz_head_view(head_view_html):
-    # This is looking for a params variable exactly, fragile way to pull the data, but continuing for now
-    match = re.search(r'const\s+params\s*=\s*({.*?})\s*;', head_view_html, re.DOTALL)
-
-    if match:
-        params_str = match.group(1)
-
-        try:
-            params = json.loads(params_str)
-            print("Successfully parsed params!")
-
-            attentions = params["attention"][0]
-            attentions.pop("name")
-            attentions.pop("right_text")
-            attentions["tokens"] = attentions.pop("left_text")
-
-            attention_data = AttentionData(tokens=attentions["tokens"], attn=attentions["attn"])
-            attention_data.save()
-
-            return attentions
-        except json.JSONDecodeError as e:
-            print("Couldn't parse params JSON:", e)
-    else:
-        print("Couldn't find 'params' in the HTML.")
-        return None
 
 
 
