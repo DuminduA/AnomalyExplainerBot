@@ -2,6 +2,11 @@ document.getElementById('csvFileInput').addEventListener('change', function(even
     const file = event.target.files[0];
     if (!file) return;
 
+    console.log("Uploading the file")
+
+    window.uploadedFileName = file['name'];
+    console.log("name", window.uploadedFileName)
+
     const reader = new FileReader();
     reader.onload = function(e) {
         const rows = e.target.result.split('\n').map(row => row.split(','));
@@ -63,10 +68,14 @@ document.getElementById('filterAnomaliesButton').addEventListener('click', async
     });
 
     console.log(logData);
+    console.log("name", window.uploadedFileName);
+
+    const fileName = window.uploadedFileName || 'NO_FILE_NAME';
 
     const requestData = {
         message: "Show anomalies",
-        log_data: logData
+        log_data: logData,
+        file: fileName
     };
     try {
         // Send request to the backend to analyze the log data
@@ -79,16 +88,22 @@ document.getElementById('filterAnomaliesButton').addEventListener('click', async
             body: JSON.stringify(requestData)
         });
 
+        if (!response.ok) {
+            throw new Error(`Server responded with ${response.status}`);
+        }
+
         const data = await response.json();
 
         addMessage(data.message, 'bot')
 
         document.getElementById('spinner').hidden = true;
-
-        // this.style.display = "flex";
         document.getElementById("filterAnomaliesButton").hidden = false;
 
     } catch (error) {
         console.error("Error fetching GPT response:", error);
+        addMessage("❌ An error occurred while analyzing the data. Please try again.", 'bot');
+    } finally {
+        document.getElementById('spinner').hidden = true;
+        document.getElementById("filterAnomaliesButton").hidden = false;
     }
 });

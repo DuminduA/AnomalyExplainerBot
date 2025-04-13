@@ -1,3 +1,11 @@
-from django.db import models
+from datetime import datetime
 
-# Create your models here.
+from mongoengine import Document, StringField, ListField, DateTimeField, IntField
+
+
+class UploadLog(Document):
+    file_name = StringField()
+    logs = ListField(StringField())
+    predicted_class = ListField(IntField())
+    date = DateTimeField(default=datetime.now)
+
