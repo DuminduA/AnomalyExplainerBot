@@ -5,7 +5,8 @@ os.environ["CUDA_VISIBLE_DEVICES"] = ""
 
 from django.conf import settings
 from huggingface_hub import login
-from transformers import RobertaTokenizerFast,RobertaForSequenceClassification
+from transformers import RobertaTokenizerFast,RobertaForSequenceClassification, AutoModelForSequenceClassification, AutoTokenizer, LlamaForSequenceClassification, LlamaTokenizer
+from peft import PeftModel
 
 torch.device("cpu")
 
@@ -21,6 +22,13 @@ class AnomalyDetectionRobertaModel:
 
         model = RobertaForSequenceClassification.from_pretrained("Dumi2025/log-anomaly-detection-model", token=settings.HUGGING_FACE_WRITE_API_KEY)
         tokenizer = RobertaTokenizerFast.from_pretrained("Dumi2025/log-anomaly-detection-model", token=settings.HUGGING_FACE_WRITE_API_KEY)
+
+        # base_llama_model = AutoModelForSequenceClassification.from_pretrained(
+        #     "meta-llama/Llama-2-7b-hf",
+        #     device_map="auto"
+        # )
+        # model = PeftModel.from_pretrained(base_llama_model, "Dumi2025/log-anomaly-detection-model-llama", token=settings.HUGGING_FACE_WRITE_API_KEY)
+        # tokenizer = LlamaTokenizer.from_pretrained("Dumi2025/log-anomaly-detection-model-llama", token=settings.HUGGING_FACE_WRITE_API_KEY)
 
         model.to("cpu")
         model.eval()
