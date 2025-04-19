@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from chat.gpt.setup_log_analyzer_client import GPTAnomalyAnalyzer
 from predictions.predict_results import AnomalyDetectionRobertaModel
 from uploader.models import UploadLog
-from visualization.models import AnomalyFindCounter
+from visualization.models import AnomalyFinderId
 
 
 class UploaderViewSet(viewsets.ViewSet):
@@ -37,6 +37,10 @@ class UploaderViewSet(viewsets.ViewSet):
             else:
                 print(f"Not an Anomaly {log} {predicted_class}")
 
+            # TODO Remove this.
+            if len(anomaly_logs) == 0:
+                anomaly_logs.append(log_data[0])
+
             gpt_response = self.client.get_gpt_response(anomaly_logs)
 
             conversation_history = request.session.get("chat_history", [])
@@ -48,9 +52,10 @@ class UploaderViewSet(viewsets.ViewSet):
             if not len(gpt_response):
                 gpt_response.append("No anomalies detected...!!!")
 
-            AnomalyFindCounter(name=str(uuid.uuid4()), counter=AnomalyFindCounter.get_global_max_counter_value() or 0 + 1).save()
+        anomaly_finder = AnomalyFinderId(uid=str(uuid.uuid4()), user=str(request.user.id)).save()
+        request.session["anomaly_finder_id"] = anomaly_finder.uid
 
-        logs = UploadLog(file_name=file, logs=log_data, predicted_class= pred_classes)
+        logs = UploadLog(file_name=file, logs=log_data, predicted_class= pred_classes, anomaly_finder_id=anomaly_finder.uid)
         logs.save()
 
         return Response({'message': gpt_response, 'logs': anomaly_logs})

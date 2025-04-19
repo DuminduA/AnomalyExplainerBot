@@ -4,6 +4,7 @@ from bertviz import head_view, model_view
 from uploader.views import UploaderViewSet
 import re, json
 import matplotlib.pyplot as plt
+import numpy as np
 
 from visualization.models import AttentionData
 
@@ -17,12 +18,17 @@ def bert_attention_view(request):
             html_str_collection = []
             model_view_str_collection = []
             logs = []
+            anomaly_finder_id = request.session.get("anomaly_finder_id")
+
+            if not anomaly_finder_id:
+                return render(request, "visualizations/bertviz.html",
+                              {"graphs": "<h1>Could not generate the graphs, No log file uploaded for this session. </h1>", 'model_view': "", 'logs': ""})
 
             for a in anomaly_detect_model_class.attentions:
                 inputs = a['inputs']
                 attentions = a['attentions']
 
-                html, tokens = get_bertviz_visualizations(attentions, inputs)
+                html, tokens = get_bertviz_visualizations(attentions, inputs, anomaly_finder_id)
 
                 html_str = html._repr_html_()
 
@@ -37,20 +43,20 @@ def bert_attention_view(request):
             return render(request, "visualizations/bertviz.html", {"graphs": html_str_collection, 'model_view': model_view_str_collection, 'logs': logs})
         return render(request, "visualizations/bertviz.html", {"graphs": "<h1>Could not generate the graphs</h1>", 'model_view': "", 'logs': ""})
 
-def get_bertviz_visualizations(attentions, inputs):
-    tokens = anomaly_detect_model_class.tokenizer.convert_ids_to_tokens(inputs.get('input_ids')[0])
+def get_bertviz_visualizations(attentions, inputs, anomaly_finder_id):
+    tokens = anomaly_detect_model_class.tokenizer.convert_ids_to_tokens(inputs.get('input_ids')[0], skip_special_tokens=True)
 
     html = head_view(attentions, tokens, html_action="return")
-    save_bertviz_head_view(html.data)
+    save_bertviz_head_view(html.data, anomaly_finder_id)
     return html, ' '.join(tokens)
 
 def get_model_visualization(attentions, inputs):
-    tokens = anomaly_detect_model_class.tokenizer.convert_ids_to_tokens(inputs.get('input_ids')[0])
+    tokens = anomaly_detect_model_class.tokenizer.convert_ids_to_tokens(inputs.get('input_ids')[0], skip_special_tokens=True)
 
     html = model_view(attentions, tokens, html_action="return")
     return html
 
-def save_bertviz_head_view(head_view_html):
+def save_bertviz_head_view(head_view_html, anomaly_finder_id):
     # This is looking for a params variable exactly, fragile way to pull the data, but continuing for now
     match = re.search(r'const\s+params\s*=\s*({.*?})\s*;', head_view_html, re.DOTALL)
 
@@ -66,7 +72,9 @@ def save_bertviz_head_view(head_view_html):
             attentions.pop("right_text")
             attentions["tokens"] = attentions.pop("left_text")
 
-            attention_data = AttentionData(tokens=attentions["tokens"], attn=attentions["attn"])
+            summarized_attentions = summarize_attention_data(attentions["attn"], len(attentions["tokens"]))
+
+            attention_data = AttentionData(tokens=attentions["tokens"], attn=summarized_attentions, anomaly_finder_id=anomaly_finder_id)
             attention_data.save()
 
             return attentions
@@ -75,6 +83,26 @@ def save_bertviz_head_view(head_view_html):
     else:
         print("Couldn't find 'params' in the HTML.")
         return None
+
+def summarize_attention_data(attentions, num_tokens):
+    num_layers = len(attentions)
+    num_heads = len(attentions[0])
+
+    top_k = 5
+    top_indices_structure = []
+
+    for layer in range(num_layers):
+        layer_list = []
+        for head in range(num_heads):
+            head_list = []
+            for token_idx in range(num_tokens):
+                attn_vector = attentions[layer][head][token_idx]
+                top_indices = list(np.argsort(attn_vector)[-top_k:][::-1])
+                head_list.append(top_indices)
+            layer_list.append(head_list)
+        top_indices_structure.append(layer_list)
+
+    return top_indices_structure
 
 
 

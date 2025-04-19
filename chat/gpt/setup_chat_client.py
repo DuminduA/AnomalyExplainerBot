@@ -18,7 +18,7 @@ class GPTChat:
     langsmith_cl = get_langsmith_client()
     model = ChatOpenAI(model='gpt-4o', temperature=0)
     prompt1 = """
-                You are an AI assistant specialized in answering questions strictly related to anomaly log analysis.
+                You are an AI assistant specialized in answering questions related to anomaly log analysis.
                 Your purpose is to help users understand, interpret, and resolve anomalies detected in system logs.
                 
                 Rules:
@@ -26,6 +26,15 @@ class GPTChat:
                 2. If a user asks about anything unrelated (e.g., general knowledge, history, entertainment), firmly but politely decline.
                 3. Provide structured, concise, and accurate responses.
                 4. Use technical knowledge but ensure clarity.
+                5. However, always try to provide some answer. Do not go into default message unless absolutely necessary.
+                6. If a user asks about explainability of the detected anomalies, formulate your answer according to the following,
+                    Explain what the attention pattern shows for layer {layer_number}, head {token_number} 
+                    for token {attentions.tokens}. Attention data related to this is {attentions.attn[layer_number][token_number]}. 
+                    Do not explain what Bertviz is and what is it used for. User is aware of the tool. 
+                    It is not required to show the token sequence back to the user. 
+                    Go deep into the attentions and tokens given and try to explain them as best as you can. 
+                    Do not include practical uses of it. User is more focused on identifying how the model inferred the results.
+                    Use attention data given for the layer to identify how the model calculated its final result.
                 
                 If a question is unrelated, respond with:
                 "I'm here to assist with log anomaly analysis. Please ask about system logs or detected anomalies."
@@ -37,10 +46,10 @@ class GPTChat:
                 """
 
     def __get_system_prompt(self):
-        return self.prompt2
+        return self.prompt1
 
     @traceable
-    def get_gpt_response(self, user_query: str, conversation_history: list):
+    def get_gpt_response(self, user_query: str, conversation_history: list, anomaly_finder_id: str):
 
         messages = []
         for msg in conversation_history:
@@ -49,9 +58,6 @@ class GPTChat:
             elif msg["role"] == "user":
                 messages.append(HumanMessage(content=msg["content"]))
 
-        if "Explain Bertviz" in user_query:
-            user_query = self.explain_bertviz(user_query)
-
         messages.append(HumanMessage(content=user_query))
 
         prompt = ChatPromptTemplate.from_messages([
@@ -59,12 +65,19 @@ class GPTChat:
             *messages
         ])
 
-        formatted_prompt = prompt.format_messages(query=user_query)
+        formatted_prompt = self.get_formatted_prompt(anomaly_finder_id, prompt, user_query)
         response = self.model.invoke(formatted_prompt)
 
         return response
 
-    def explain_bertviz(self, user_query):
+    def get_formatted_prompt(self, anomaly_finder_id, prompt, user_query):
+        attention_data = AttentionData.objects.filter(anomaly_finder_id=anomaly_finder_id).all()
+        if not attention_data:
+            raise ValueError("No attentions data in the database")
+        return prompt.format_messages(query=user_query, layer_number=3,
+                                      token_number=5, token="line", attentions=attention_data)
+
+    def explain_bertviz(self, user_query, anomaly_finder_id):
         pattern = r"layer\s+(\d+).*?token\s+(\d+)"
         match = re.search(pattern, user_query, re.IGNORECASE)
 
@@ -73,10 +86,10 @@ class GPTChat:
             token_number = int(match.group(2))
             print(f"Layer: {layer_number}, Token: {token_number}")
 
-            attentions = AttentionData.objects().order_by('-counter').first()
+            attentions = AttentionData.objects().filter().first()
 
             new_user_query = f"""Explain what the attention pattern shows for layer {layer_number}, head {token_number} 
-            for token {attentions.tokens}. Attention data related to this is {attentions.attn[layer_number][token_number]}. 
+            for token {attentions.tokens}. Top 5 Attention data related to this is {attentions.attn[layer_number][token_number]}. 
             Do not explain what Bertviz is and what is it used for. User is aware of the tool. 
             It is not required to show the token sequence back to the user. 
             Go deep into the attentions and tokens given and try to explain them as best as you can. 

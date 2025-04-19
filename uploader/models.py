@@ -8,4 +8,5 @@ class UploadLog(Document):
     logs = ListField(StringField())
     predicted_class = ListField(IntField())
     date = DateTimeField(default=datetime.now)
+    anomaly_finder_id = StringField()
 

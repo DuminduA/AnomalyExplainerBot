@@ -18,17 +18,9 @@ class AnomalyDetectionRobertaModel:
         self.attentions = []
 
     def load_model(self):
-        # login(settings.HUGGING_FACE_WRITE_API_KEY)
 
-        model = RobertaForSequenceClassification.from_pretrained("Dumi2025/log-anomaly-detection-model", token=settings.HUGGING_FACE_WRITE_API_KEY)
-        tokenizer = RobertaTokenizerFast.from_pretrained("Dumi2025/log-anomaly-detection-model", token=settings.HUGGING_FACE_WRITE_API_KEY)
-
-        # base_llama_model = AutoModelForSequenceClassification.from_pretrained(
-        #     "meta-llama/Llama-2-7b-hf",
-        #     device_map="auto"
-        # )
-        # model = PeftModel.from_pretrained(base_llama_model, "Dumi2025/log-anomaly-detection-model-llama", token=settings.HUGGING_FACE_WRITE_API_KEY)
-        # tokenizer = LlamaTokenizer.from_pretrained("Dumi2025/log-anomaly-detection-model-llama", token=settings.HUGGING_FACE_WRITE_API_KEY)
+        model = RobertaForSequenceClassification.from_pretrained("Dumi2025/log-anomaly-detection-model-roberta", token=settings.HUGGING_FACE_WRITE_API_KEY)
+        tokenizer = RobertaTokenizerFast.from_pretrained("Dumi2025/log-anomaly-detection-model-roberta", token=settings.HUGGING_FACE_WRITE_API_KEY)
 
         model.to("cpu")
         model.eval()

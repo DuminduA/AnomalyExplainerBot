@@ -19,16 +19,21 @@ class ChatBotViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['post'], name="chat-with-gpt", url_path="chat-with-gpt")
     def get_response(self, request):
         if request.user.is_authenticated:
-            user_message = request.data
-            conversation_history = request.session.get("chat_history", [])
+            try:
+                user_message = request.data
+                conversation_history = request.session.get("chat_history", [])
 
-            response = self.client.get_gpt_response(user_message, conversation_history)
+                anomaly_finder_id = request.session.get("anomaly_finder_id")
 
-            conversation_history.append({"role": "user", "content": user_message})
-            conversation_history.append({"role": "bot", "content": response.content})
-            request.session['chat_history'] = conversation_history
+                response = self.client.get_gpt_response(user_message, conversation_history, anomaly_finder_id)
 
-            return Response({"bot_message": response.content})
+                conversation_history.append({"role": "user", "content": user_message})
+                conversation_history.append({"role": "bot", "content": response.content})
+                request.session['chat_history'] = conversation_history
+
+                return Response({"bot_message": response.content})
+            except ValueError as e:
+                return Response({"bot_message": str(e)})
         else:
             return Response({"message": "Forbidden"}, status=http.client.FORBIDDEN)
 

@@ -10,7 +10,7 @@ from langsmith.wrappers import wrap_openai
 class GPTAnomalyAnalyzer:
 
     client = wrap_openai(openai.OpenAI(api_key=settings.OPENAI_API_KEY))
-    model = ChatOpenAI(model='gpt-4o-mini', temperature=0)
+    model = ChatOpenAI(model='gpt-4o', temperature=0)
 
     def __get_system_prompt(self):
         return """
