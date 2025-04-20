@@ -44,14 +44,15 @@ def bert_attention_view(request):
         return render(request, "visualizations/bertviz.html", {"graphs": "<h1>Could not generate the graphs</h1>", 'model_view': "", 'logs': ""})
 
 def get_bertviz_visualizations(attentions, inputs, anomaly_finder_id):
-    tokens = anomaly_detect_model_class.tokenizer.convert_ids_to_tokens(inputs.get('input_ids')[0], skip_special_tokens=True)
+    # tokens = anomaly_detect_model_class.tokenizer.convert_ids_to_tokens(inputs.get('input_ids')[0], skip_special_tokens=True)
+    tokens = anomaly_detect_model_class.tokenizer.convert_ids_to_tokens(inputs.get('input_ids')[0])
 
     html = head_view(attentions, tokens, html_action="return")
     save_bertviz_head_view(html.data, anomaly_finder_id)
     return html, ' '.join(tokens)
 
 def get_model_visualization(attentions, inputs):
-    tokens = anomaly_detect_model_class.tokenizer.convert_ids_to_tokens(inputs.get('input_ids')[0], skip_special_tokens=True)
+    tokens = anomaly_detect_model_class.tokenizer.convert_ids_to_tokens(inputs.get('input_ids')[0], skip_special_tokens=False)
 
     html = model_view(attentions, tokens, html_action="return")
     return html
@@ -72,9 +73,9 @@ def save_bertviz_head_view(head_view_html, anomaly_finder_id):
             attentions.pop("right_text")
             attentions["tokens"] = attentions.pop("left_text")
 
-            summarized_attentions = summarize_attention_data(attentions["attn"], len(attentions["tokens"]))
+            attentions['attn'] = summarize_attention_data(attentions["attn"], len(attentions["tokens"]))
 
-            attention_data = AttentionData(tokens=attentions["tokens"], attn=summarized_attentions, anomaly_finder_id=anomaly_finder_id)
+            attention_data = AttentionData(tokens=attentions["tokens"], attn=attentions['attn'], anomaly_finder_id=anomaly_finder_id)
             attention_data.save()
 
             return attentions
@@ -88,7 +89,7 @@ def summarize_attention_data(attentions, num_tokens):
     num_layers = len(attentions)
     num_heads = len(attentions[0])
 
-    top_k = 5
+    top_k = 2
     top_indices_structure = []
 
     for layer in range(num_layers):
@@ -97,7 +98,7 @@ def summarize_attention_data(attentions, num_tokens):
             head_list = []
             for token_idx in range(num_tokens):
                 attn_vector = attentions[layer][head][token_idx]
-                top_indices = list(np.argsort(attn_vector)[-top_k:][::-1])
+                top_indices = [int(i) for i in np.argsort(attn_vector)[-top_k:][::-1]]
                 head_list.append(top_indices)
             layer_list.append(head_list)
         top_indices_structure.append(layer_list)
