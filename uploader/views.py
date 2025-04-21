@@ -26,13 +26,12 @@ class UploaderViewSet(viewsets.ViewSet):
         anomaly_finder = AnomalyFinderId(uid=str(uuid.uuid4()), user=str(request.user.id)).save()
         request.session["anomaly_finder_id"] = anomaly_finder.uid
 
-        self.anomaly_detect_model_class.clear_attentions()
         anomaly_logs = []
         pred_classes = []
         gpt_response = ""
 
         for log in log_data:
-            predicted_class = self.anomaly_detect_model_class.classify_log(log, anomaly_finder.id)
+            predicted_class = self.anomaly_detect_model_class.classify_log(log, anomaly_finder.uid)
             pred_classes.append(predicted_class)
             if predicted_class == 1:
                 print(f"Anomaly detected {log}")

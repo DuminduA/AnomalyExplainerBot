@@ -23,7 +23,7 @@ def bert_attention_view(request):
         model_attentions = ModelAttentions.objects.filter(anomaly_finder_id=anomaly_finder_id).all()
         if not model_attentions:
             return render(request, "visualizations/bertviz.html",
-                          {"graphs": "<h1>Could not generate the graphs, No model attentions</h1>", 'model_view': "", 'logs': ""})
+                          {"graphs": "<h1>Could not generate the graphs, No bertviz model attentions</h1>", 'model_view': "", 'logs': ""})
 
         if len(model_attentions):
 

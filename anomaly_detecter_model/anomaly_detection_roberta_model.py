@@ -18,7 +18,6 @@ logger = logging.getLogger(__name__)
 class AnomalyDetectionRobertaModel:
     def __init__(self):
         self.model, self.tokenizer = self.load_model()
-        self.attentions = []
 
     def load_model(self):
         repository_id = "Dumi2025/log-anomaly-detection-model-new"
@@ -34,18 +33,23 @@ class AnomalyDetectionRobertaModel:
     def classify_log(self, log, anomaly_finder_id):
         inputs = self.tokenizer(log, return_tensors="pt", truncation=True, padding=True)
 
-        # Perform classification
         with torch.no_grad():
             outputs = self.model(**inputs, output_attentions=True)
             logits = outputs.logits
             predicted_class = torch.argmax(logits, dim=-1).item()
-            attentions = outputs.attentions
-            self.attentions.append({"inputs": inputs, "attentions": attentions})
+            attentions = outputs.attentions  # Tuple of tensors
 
-            ModelAttentions(attentions=attentions, input_ids=inputs, log=log, anomaly_finder_id=anomaly_finder_id)
+            input_ids = inputs["input_ids"].squeeze().tolist()
+
+            attentions_as_lists = [layer[0].tolist() for layer in attentions]
+
+            model_attention = ModelAttentions(
+                attentions=attentions_as_lists,
+                input_ids=input_ids,
+                log=log,
+                anomaly_finder_id=anomaly_finder_id
+            )
+            model_attention.save()
 
         return predicted_class
-
-    def clear_attentions(self):
-        self.attentions = []
 
