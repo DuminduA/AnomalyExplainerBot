@@ -1,6 +1,9 @@
 import os
 import torch
 import logging
+
+from visualization.models import ModelAttentions
+
 os.environ["CUDA_VISIBLE_DEVICES"] = ""
 
 from django.conf import settings
@@ -18,9 +21,9 @@ class AnomalyDetectionRobertaModel:
         self.attentions = []
 
     def load_model(self):
-
-        model = RobertaForSequenceClassification.from_pretrained("Dumi2025/log-anomaly-detection-model-roberta", token=settings.HUGGING_FACE_WRITE_API_KEY)
-        tokenizer = RobertaTokenizerFast.from_pretrained("Dumi2025/log-anomaly-detection-model-roberta", token=settings.HUGGING_FACE_WRITE_API_KEY)
+        repository_id = "Dumi2025/log-anomaly-detection-model-new"
+        model = RobertaForSequenceClassification.from_pretrained(repository_id, token=settings.HUGGING_FACE_WRITE_API_KEY)
+        tokenizer = RobertaTokenizerFast.from_pretrained(repository_id, token=settings.HUGGING_FACE_WRITE_API_KEY)
 
         model.to("cpu")
         model.eval()
@@ -28,7 +31,7 @@ class AnomalyDetectionRobertaModel:
         return model, tokenizer
 
 
-    def classify_log(self, log):
+    def classify_log(self, log, anomaly_finder_id):
         inputs = self.tokenizer(log, return_tensors="pt", truncation=True, padding=True)
 
         # Perform classification
@@ -38,6 +41,8 @@ class AnomalyDetectionRobertaModel:
             predicted_class = torch.argmax(logits, dim=-1).item()
             attentions = outputs.attentions
             self.attentions.append({"inputs": inputs, "attentions": attentions})
+
+            ModelAttentions(attentions=attentions, input_ids=inputs, log=log, anomaly_finder_id=anomaly_finder_id)
 
         return predicted_class
 

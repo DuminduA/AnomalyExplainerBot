@@ -9,7 +9,7 @@ from langsmith import traceable
 import langsmith
 
 from setup_langsmith_client import get_langsmith_client
-from visualization.models import AttentionData
+from visualization.models import BertvizAttentionData
 
 langsmith.debug = True
 
@@ -92,7 +92,7 @@ class GPTChat:
         return response
 
     def get_formatted_prompt(self, anomaly_finder_id, prompt, user_query):
-        attention_data = AttentionData.objects.filter(anomaly_finder_id=anomaly_finder_id).first()
+        attention_data = BertvizAttentionData.objects.filter(anomaly_finder_id=anomaly_finder_id).first()
         if not attention_data:
             raise ValueError("No attentions data in the database")
         attn_value = attention_data.attn[3][5]
@@ -114,7 +114,7 @@ class GPTChat:
             token_number = int(match.group(2))
             print(f"Layer: {layer_number}, Token: {token_number}")
 
-            attentions = AttentionData.objects().filter().first()
+            attentions = BertvizAttentionData.objects().filter().first()
 
             new_user_query = f"""Explain what the attention pattern shows for layer {layer_number}, head {token_number} 
             for token {attentions.tokens}. Top 5 Attention data related to this is {attentions.attn[layer_number][token_number]}. 
