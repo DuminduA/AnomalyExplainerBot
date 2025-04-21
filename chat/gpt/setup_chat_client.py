@@ -94,7 +94,7 @@ class GPTChat:
     def get_formatted_prompt(self, anomaly_finder_id, prompt, user_query):
         attention_data = BertvizAttentionData.objects.filter(anomaly_finder_id=anomaly_finder_id).first()
         if not attention_data:
-            raise ValueError("No attentions data in the database")
+            raise ValueError("Please click the visualizations button first to generate required data for explanations.")
         attn_value = attention_data.attn[3][5]
         tokens = attention_data.tokens
 
