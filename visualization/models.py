@@ -25,7 +25,7 @@ class CaptumAttentionData(Document):
 
 
 class ModelAttentions(Document):
-    attentions = ListField(ListField(ListField(ListField(FloatField()))))  # [layer][head][seq_len][seq_len]
+    attentions = ListField(ListField(ListField(ListField(ListField(FloatField()))))) # [layer][head][seq_len][seq_len]
     input_ids = ListField(IntField())
     log = StringField()
     anomaly_finder_id = StringField()

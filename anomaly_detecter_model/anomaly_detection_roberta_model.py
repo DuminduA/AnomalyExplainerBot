@@ -41,7 +41,7 @@ class AnomalyDetectionRobertaModel:
 
             input_ids = inputs["input_ids"].squeeze().tolist()
 
-            attentions_as_lists = [layer[0].tolist() for layer in attentions]
+            attentions_as_lists = [layer.tolist() for layer in attentions]
 
             model_attention = ModelAttentions(
                 attentions=attentions_as_lists,

@@ -12,14 +12,14 @@ anomaly_detect_model_class = UploaderViewSet.anomaly_detect_model_class
 def get_bertviz_visualizations(attentions, inputs, anomaly_finder_id):
     # TODO Shall we add skip special tokens
     # tokens = anomaly_detect_model_class.tokenizer.convert_ids_to_tokens(inputs.get('input_ids')[0], skip_special_tokens=True)
-    tokens = anomaly_detect_model_class.tokenizer.convert_ids_to_tokens(inputs.get('input_ids')[0])
+    tokens = anomaly_detect_model_class.tokenizer.convert_ids_to_tokens(inputs)
 
     html = head_view(attentions, tokens, html_action="return")
     save_bertviz_head_view(html.data, anomaly_finder_id)
     return html, ' '.join(tokens)
 
 def get_model_visualization(attentions, inputs):
-    tokens = anomaly_detect_model_class.tokenizer.convert_ids_to_tokens(inputs.get('input_ids')[0], skip_special_tokens=False)
+    tokens = anomaly_detect_model_class.tokenizer.convert_ids_to_tokens(inputs, skip_special_tokens=False)
 
     html = model_view(attentions, tokens, html_action="return")
     return html
