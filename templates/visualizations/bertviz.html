@@ -1,55 +1,111 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <title>BERT Attention Visualization</title>
     <style>
-        .grid-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
+        body {
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f2f4f8;
+            margin: 0;
             padding: 20px;
+            color: #333;
         }
-        .graph-item {
-            border: 1px solid #ccc;
+
+        h2 {
+            text-align: center;
+            color: #222;
+            margin-bottom: 30px;
+        }
+
+        label {
+            font-weight: 600;
+            display: block;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        #logDropdown {
+            display: block;
+            margin: 0 auto 30px auto;
             padding: 10px;
-            background: #f9f9f9;
+            width: 1200px;
+            max-width: 90%;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            background-color: #fff;
+            font-size: 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .pair-container {
+            display: none;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 20px;
+            padding: 0 20px;
+            margin-bottom: 40px;
+        }
+
+        .pair-container.show {
+            display: flex;
+        }
+
+        .graph-item,
+        .mv-item {
+            flex: 1 1 48%;
+            background: #ffffff;
+            padding: 16px;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        @media (max-width: 768px) {
+            .graph-item,
+            .mv-item {
+                flex: 1 1 100%;
+            }
+
+            #logDropdown {
+                width: 100%;
+            }
         }
     </style>
 </head>
 <body>
+
     <h2>BERT Attention Visualization</h2>
 
     <label for="logDropdown"><strong>Anomaly Logs:</strong></label>
     <select id="logDropdown" onchange="updateLogDisplay()">
+        <option selected disabled>Select a log</option>
         {% for log in logs %}
-            <option value="log_{{ forloop.counter }}">{{ log }}</option>
+            <option value="{{ forloop.counter0 }}">{{ log }}</option>
         {% endfor %}
     </select>
 
-    <div class="grid-container">
-        {% for graph in graphs %}
+    {% for pair in paired_data %}
+        <div class="pair-container" id="pair_{{ forloop.counter0 }}">
             <div class="graph-item">
-                {{ graph | safe }}
+                {{ pair.graph|safe }}
             </div>
-        {% endfor %}
-    </div>
-
-    <div class="grid-container">
-        {% for mv in model_view %}
-            <div>
-                {{ mv | safe }}
+            <div class="mv-item">
+                {{ pair.mv|safe }}
             </div>
-        {% endfor %}
-    </div>
+        </div>
+    {% endfor %}
 
     <script>
         function updateLogDisplay() {
-            var dropdown = document.getElementById("logDropdown");
-            var selectedValue = dropdown.value;
-            var logs = {{ logs|safe }};
+            const index = document.getElementById("logDropdown").value;
 
-            var logIndex = parseInt(selectedValue.split("_")[1]) - 1;
-            document.getElementById("logDisplay").innerText = logs[logIndex];
+            document.querySelectorAll(".pair-container").forEach(el => {
+                el.classList.remove("show");
+            });
+
+            const selectedPair = document.getElementById("pair_" + index);
+            if (selectedPair) selectedPair.classList.add("show");
         }
     </script>
 

@@ -43,7 +43,17 @@ def bert_attention_view(request):
             model_view_str_collection.append(model_html_str)
             logs.append(tokens)
 
-        return render(request, "visualizations/bertviz.html", {"graphs": html_str_collection, 'model_view': model_view_str_collection, 'logs': logs})
+        paired_data = [
+            {"graph": graph, "mv": mv}
+            for graph, mv in zip(html_str_collection, model_view_str_collection)
+        ]
+
+        context = {
+            "logs": logs,
+            "paired_data": paired_data
+        }
+
+        return render(request, "visualizations/bertviz.html", context)
     return render(request, "visualizations/bertviz.html", {"graphs": "<h1>Could not generate the graphs</h1>", 'model_view': "", 'logs': ""})
 
 
