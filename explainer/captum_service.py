@@ -4,11 +4,11 @@ from torch import nn
 import torch.nn.functional as F
 from captum.attr import visualization as viz
 
+from anomaly_detecter_model.anomaly_detection_roberta_model import AnomalyDetectionRobertaModel
 from uploader.models import UploadLog
-from uploader.views import UploaderViewSet
 from visualization.models import CaptumAttentionData
 
-anomaly_detect_model_class = UploaderViewSet.anomaly_detect_model_class
+anomaly_detect_model_class = AnomalyDetectionRobertaModel()
 
 class RobertaWrapper(nn.Module):
     def __init__(self, model):

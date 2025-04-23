@@ -4,55 +4,34 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from chat.gpt.setup_log_analyzer_client import GPTAnomalyAnalyzer
-from anomaly_detecter_model.anomaly_detection_roberta_model import AnomalyDetectionRobertaModel
-from uploader.models import UploadLog
 from visualization.models import AnomalyFinderId
+from uploader.service import FileUploaderService
 
 
 class UploaderViewSet(viewsets.ViewSet):
-    client = GPTAnomalyAnalyzer()
-    anomaly_detect_model_class = AnomalyDetectionRobertaModel()
+    service = FileUploaderService()
 
     @action(detail=False, methods=['post'])
     def find_anomalies(self, request):
-        message = request.data.get("message", "")
         log_data = request.data.get("log_data", [])
-        file = request.data.get("file", "")
 
         if not log_data:
             return Response({"error": "No log data provided."}, status=status.HTTP_400_BAD_REQUEST)
+        if len(log_data)> 10:
+            return Response({"error": "Too many log data uploaded. Please only give files with at most 10 logs."}, status=status.HTTP_400_BAD_REQUEST)
 
-        anomaly_finder = AnomalyFinderId(uid=str(uuid.uuid4()), user=str(request.user.id)).save()
+        message = request.data.get("message", "")
+        file = request.data.get("file", "")
+        conversation_history = request.session.get("chat_history", [])
+
+        anomaly_finder = self.create_new_anomaly_finder(request.user.id)
         request.session["anomaly_finder_id"] = anomaly_finder.uid
 
-        anomaly_logs = []
-        pred_classes = []
-        gpt_response = ""
+        results_dict = self.service.process_file(conversation_history, file, log_data, anomaly_finder)
+        request.session["chat_history"] = results_dict.get("conversation_history")
 
-        for log in log_data:
-            predicted_class = self.anomaly_detect_model_class.classify_log(log, anomaly_finder.uid)
-            pred_classes.append(predicted_class)
-            if predicted_class == 1:
-                print(f"Anomaly detected {log}")
-                anomaly_logs.append(log)
-            else:
-                print(f"Not an Anomaly {log} {predicted_class}")
+        return Response({'message': results_dict.get("gpt_response"), 'logs': results_dict.get("anomaly_logs")})
 
-
-            gpt_response = self.client.get_gpt_response(anomaly_logs)
-
-            conversation_history = request.session.get("chat_history", [])
-            conversation_history.append({"role": "user", "content": "\n".join(log_data)})
-            conversation_history.append({"role": "bot", "content": "\n".join(gpt_response)})
-            request.session["chat_history"] = conversation_history
-
-
-            if not len(gpt_response):
-                gpt_response.append("No anomalies detected...!!!")
-
-        logs = UploadLog(file_name=file, logs=log_data, predicted_class= pred_classes, anomaly_finder_id=anomaly_finder.uid)
-        logs.save()
-
-        return Response({'message': gpt_response, 'logs': anomaly_logs})
-
+    def create_new_anomaly_finder(self, user_id):
+        anomaly_finder = AnomalyFinderId(uid=str(uuid.uuid4()), user=str(user_id)).save()
+        return anomaly_finder

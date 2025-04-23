@@ -4,10 +4,10 @@ import re
 import numpy as np
 from bertviz import head_view, model_view
 
-from uploader.views import UploaderViewSet
 from visualization.models import BertvizAttentionData
+from anomaly_detecter_model.anomaly_detection_roberta_model import AnomalyDetectionRobertaModel
 
-anomaly_detect_model_class = UploaderViewSet.anomaly_detect_model_class
+anomaly_detect_model_class = AnomalyDetectionRobertaModel()
 
 def get_bertviz_visualizations(attentions, inputs, anomaly_finder_id):
     # TODO Shall we add skip special tokens

@@ -1,12 +1,11 @@
-from django.http import JsonResponse
 from django.shortcuts import render
 
+from anomaly_detecter_model.anomaly_detection_roberta_model import AnomalyDetectionRobertaModel
 from explainer.captum_service import save_feature_attribution_with_ig, visualize_captum_graphs
-from uploader.views import UploaderViewSet
 from explainer.bertviz_service import get_bertviz_visualizations, get_model_visualization
 from visualization.models import ModelAttentions
 
-anomaly_detect_model_class = UploaderViewSet.anomaly_detect_model_class
+anomaly_detect_model_class = AnomalyDetectionRobertaModel()
 
 def bert_attention_view(request):
     if request.method == "GET":
