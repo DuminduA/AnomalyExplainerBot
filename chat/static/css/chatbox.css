@@ -42,6 +42,7 @@
 .message.bot .text {
     background-color: #e5e5ea;
     color: #000;
+    text-align: start;
 }
 .chat-input {
     display: flex;
