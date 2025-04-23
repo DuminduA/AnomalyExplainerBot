@@ -25,19 +25,18 @@ class GPTAnomalyAnalyzer:
                 5. Recommend an action to resolve the issue.
                 6. Include a relevant log snippet.
                 7. Be concise and professional.
+                8. Prioritize clarity and actionability. If the anomaly type is unclear, suggest general troubleshooting steps.
                 
                 Format:
-                🚨 **Anomaly Detected:** {anomaly_type}
-                **Log Source:** {log_source}
-                **Severity:** {severity}
-                **Issue Summary:** {summary}
-                **Possible Cause:** {possible_cause}
-                **Recommended Action:** {suggested_fix}
+                🚨 Anomaly Detected: 
+                Log Source:
+                Severity:
+                Issue Summary:
+                Possible Cause:
+                Recommended Action:
                 
-                🔍 **Log Snippet:**
-                `{log_snippet}`
-                
-                Prioritize clarity and actionability. If the anomaly type is unclear, suggest general troubleshooting steps.
+                🔍 Log Snippet:
+                `{log_data}`
                 """
 
     def get_gpt_response(self, log_data: list):
@@ -49,8 +48,7 @@ class GPTAnomalyAnalyzer:
         ])
 
         for log in log_data:
-            formatted_prompt = prompt.format_messages(log_data=log, anomaly_type="", log_source="", severity="", summary="",
-                                   possible_cause="", suggested_fix="", log_snippet=log)
+            formatted_prompt = prompt.format_messages(log_data=log)
             response = self.model.invoke(formatted_prompt)
             results.append(response.content)
 

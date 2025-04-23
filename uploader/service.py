@@ -29,9 +29,9 @@ class FileUploaderService:
 
         # Update conversation history
         conversation_history.append({"role": "user", "content": "\n".join(log_data)})
-        conversation_history.append({"role": "bot", "content": "\n".join(gpt_response)})
+        conversation_history.append({"role": "bot", "content": "\n\n\n-------------------\n\n\n".join(gpt_response)})
 
-        return conversation_history, gpt_response
+        return conversation_history, "\n-------------------\n".join(gpt_response)
 
     def save_logs(self, file, log_data, predicted_classes, anomaly_finder):
         logs = UploadLog(
