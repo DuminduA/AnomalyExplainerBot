@@ -1,110 +1,147 @@
-import torch
-from captum.attr import IntegratedGradients
-from torch import nn
 import torch.nn.functional as F
-from captum.attr import visualization as viz
-
-from anomaly_detecter_model.anomaly_detection_roberta_model import AnomalyDetectionRobertaModel
+import torch
+from transformers import RobertaTokenizerFast, BertForSequenceClassification
+from captum.attr import visualization as viz, remove_interpretable_embedding_layer, \
+    configure_interpretable_embedding_layer
+from captum.attr import LayerIntegratedGradients
+from django.utils.safestring import mark_safe
 from uploader.models import UploadLog
-from visualization.models import CaptumAttentionData
+from visualization.models import AnomalyFinderId
 
-anomaly_detect_model_class = AnomalyDetectionRobertaModel()
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-class RobertaWrapper(nn.Module):
-    def __init__(self, model):
-        super(RobertaWrapper, self).__init__()
-        self.model = model
+model_path = 'Dumi2025/log-anomaly-detection-model-new'
 
-    def forward(self, inputs, attention_mask=None):
-        outputs = self.model(inputs, attention_mask=attention_mask)
-        return F.softmax(outputs.logits, dim=-1)
+# load model
+model = BertForSequenceClassification.from_pretrained(model_path)
+model.to(device)
+model.eval()
+model.zero_grad()
+
+# load tokenizer
+tokenizer = RobertaTokenizerFast.from_pretrained(model_path)
 
 
-# Create wrapped model
-wrapped_model = RobertaWrapper(anomaly_detect_model_class.model)
+# Fix in captum_service.py line 133
+def predict(input_ids, attention_mask=None):
+    # Add batch dimension if missing
+    if input_ids.dim() == 1:
+        input_ids = input_ids.unsqueeze(0)  # From [seq_len] to [1, seq_len]
+        attention_mask = attention_mask.unsqueeze(0)
 
-def predict(inputs, attention_mask=None):
-    return wrapped_model(inputs.long(), attention_mask)
+    return model(input_ids=input_ids, attention_mask=attention_mask).logits
 
-ig = IntegratedGradients(predict)
+def forward_func(input_ids, attention_mask=None):
+    logits = predict(input_ids, attention_mask)
+    # Assuming class 1 is "anomaly"
+    return F.softmax(logits, dim=-1)[:, 1]
 
-def save_feature_attribution_with_ig(request):
-    anomaly_finder_id=request.session.get("anomaly_finder_id")
-    if not anomaly_finder_id:
-        raise ValueError(f"Could not find anomaly finder id {anomaly_finder_id}")
-    logs = UploadLog.objects.filter(anomaly_finder_id=anomaly_finder_id).first()
-    attributions_list = []
-    deltas_list = []
+def summarize_attributions(attributions):
+    attributions = attributions.sum(dim=-1).squeeze(0)
+    return attributions / torch.norm(attributions)
 
-    for log in logs['logs']:
-        inputs = anomaly_detect_model_class.tokenizer(log, return_tensors="pt", padding=True, truncation=True)
-        input_ids = inputs["input_ids"].long()
-        attention_mask = inputs["attention_mask"]
+def visualize_log_attribution_old(request):
+    log_text = UploadLog.objects.first().logs[0]
+    # Tokenize
+    inputs = tokenizer(log_text, return_tensors="pt", truncation=True, padding=True)
+    input_ids = inputs["input_ids"].to(device)
+    attention_mask = inputs["attention_mask"].to(device)
 
-        attributions, delta = ig.attribute(
-            input_ids,
-            target=0,
-            n_steps=50,
+    tokens = tokenizer.convert_ids_to_tokens(input_ids[0])
+
+    # Hook embedding layer
+    # interpretable_emb = configure_interpretable_embedding_layer(model, 'bert.embeddings')
+    lig = LayerIntegratedGradients(forward_func, model.bert.embeddings)
+
+    # Compute attributions
+    attributions, delta = lig.attribute(
+        inputs=input_ids,
+        additional_forward_args=(attention_mask,),
+        return_convergence_delta=True,
+        n_steps=50
+    )
+
+    # remove_interpretable_embedding_layer(model, interpretable_emb)
+
+    # Normalize
+    attr_sum = summarize_attributions(attributions)
+
+    # Get prediction
+    with torch.no_grad():
+        pred_class = torch.argmax(predict(input_ids, attention_mask)).item()
+        pred_prob = F.softmax(predict(input_ids, attention_mask), dim=1)[0][pred_class].item()
+
+    # Convert delta to a float if it's a tensor
+    if isinstance(delta, torch.Tensor):
+        delta = delta.item()
+
+        # Visualization
+    text_and_pred = "Anomaly" if pred_class == 1 else "Normal"
+
+    record = viz.VisualizationDataRecord(
+        word_attributions=attr_sum,
+        pred_prob=pred_prob,
+        pred_class=text_and_pred,
+        true_class=text_and_pred,
+        attr_class=pred_class,
+        attr_score=delta,
+        raw_input_ids=tokens,
+        convergence_score=delta
+    )
+
+    print("Prediction:", "Anomaly" if pred_class == 1 else "Normal")
+    html = viz.visualize_text([record])
+    return html._repr_html_()
+
+
+def visualize_log_attribution(anomaly_finder_id):
+
+    logs = UploadLog.objects.filter(anomaly_finder_id=anomaly_finder_id).first().logs
+    visualizations = []
+
+    for log_text in logs:
+        inputs = tokenizer(log_text, return_tensors="pt", truncation=True, padding=True)
+        input_ids = inputs["input_ids"].to(device)
+        attention_mask = inputs["attention_mask"].to(device)
+
+        tokens = tokenizer.convert_ids_to_tokens(input_ids[0])
+
+        # Attribution computation
+        lig = LayerIntegratedGradients(forward_func, model.bert.embeddings)
+        attributions, delta = lig.attribute(
+            inputs=input_ids,
+            additional_forward_args=(attention_mask,),
             return_convergence_delta=True,
-            additional_forward_args=attention_mask
+            n_steps=50
         )
 
-        attributions = attributions.sum(dim=-1).squeeze(0)
-        attributions = attributions / torch.norm(attributions)
+        # Normalize
+        attr_sum = summarize_attributions(attributions)
 
-        attributions_list.append(attributions)
-        deltas_list.append(delta)
+        # Prediction
+        with torch.no_grad():
+            logits = predict(input_ids, attention_mask)
+            pred_class = torch.argmax(logits, dim=-1).item()
+            pred_prob = torch.softmax(logits, dim=1)[0][pred_class].item()
 
-    CaptumAttentionData(attributions=attributions_list, delta=deltas_list, anomaly_finder_id=anomaly_finder_id)
+        # Convert delta
+        delta_val = delta.item() if isinstance(delta, torch.Tensor) else delta
+        label = "Anomaly" if pred_class == 1 else "Normal"
 
-# def save_layer_attributions():
-#     # Configure interpretable embedding layer
-#     interpretable_embedding = configure_interpretable_embedding_layer(model, 'roberta.embeddings')
-#
-#     # Create layer attribution method
-#     lig = LayerIntegratedGradients(predict, interpretable_embedding)
-#
-#     # Compute layer attributions
-#     attributions_lig, delta = lig.attribute(
-#         input_ids,
-#         target=0,
-#         n_steps=50,
-#         return_convergence_delta=True,
-#         additional_forward_args=attention_mask
-#     )
-#
-#     # Remove interpretable embedding when done
-#     remove_interpretable_embedding_layer(model, interpretable_embedding)
+        # Captum record
+        record = viz.VisualizationDataRecord(
+            word_attributions=attr_sum,
+            pred_prob=pred_prob,
+            pred_class=label,
+            true_class="",
+            attr_class=pred_class,
+            attr_score=delta_val,
+            raw_input_ids=tokens,
+            convergence_score=delta_val
+        )
 
-def visualize_captum_graphs(request):
-    anomaly_finder_id = request.session.get("anomaly_finder_id")
+        visualizations.append(record)
 
-    captum_attr_data = CaptumAttentionData.objects.filter(anomaly_finder_id=anomaly_finder_id).first()
-    logs = UploadLog.objects.filter(anomaly_finder_id=anomaly_finder_id).first()
-    pred_class = logs[0]['predicted_class'][0]
-
-    attr_sum = captum_attr_data['attributions'][0]
-    delta = captum_attr_data['delta'][0]
-
-    inputs = anomaly_detect_model_class.tokenizer(
-        logs[0],
-        return_tensors="pt",
-        truncation=True,
-        padding=True
-    )
-    tokens = anomaly_detect_model_class.tokenizer.convert_ids_to_tokens(inputs[0])
-
-    vis_data_records = []
-    vis_data_records.append(viz.VisualizationDataRecord(
-        attr_sum,
-        pred_class,
-        "Anomaly" if pred_class == 1 else "Normal",
-        pred_class,
-        "Anomaly" if pred_class == 1 else "Normal",
-        tokens,
-        delta,
-        attr_class=pred_class
-    ))
-
-    return viz.visualize_text(vis_data_records, return_html=True)
-
+    # Combine all visualizations
+    html_output = viz.visualize_text(visualizations)
+    return mark_safe(html_output._repr_html_())

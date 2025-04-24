@@ -1,38 +1,79 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <title>Captum Feature Visualization</title>
     <style>
-        .grid-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            padding: 20px;
-        }
-        .graph-item {
-            border: 1px solid #ccc;
-            padding: 10px;
-            background: #f9f9f9;
-        }
-    </style>
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 14px;
+  }
+
+  th, td {
+    text-align: left;
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+  }
+
+  th {
+    background-color: #f8f9fa;
+    font-weight: bold;
+  }
+
+  mark {
+    padding: 2px 4px;
+    border-radius: 4px;
+    line-height: 1.5;
+    margin: 1px;
+    display: inline-block;
+  }
+
+  .legend {
+    margin-top: 10px;
+    padding-top: 5px;
+    border-top: 2px solid #ccc;
+    font-weight: bold;
+    display: flex;
+    gap: 20px;
+    align-items: center;
+  }
+
+  .legend span {
+    width: 12px;
+    height: 12px;
+    display: inline-block;
+    border-radius: 3px;
+    margin-right: 6px;
+    border: 1px solid #aaa;
+  }
+
+  h2 {
+    text-align: center;
+    color: #222;
+    margin-bottom: 30px;
+    }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f2f4f8;
+        margin: 0;
+        padding: 20px;
+        color: #333;
+    }
+
+</style>
 </head>
 <body>
+
     <h2>Captum Feature Visualization</h2>
 
-    <div class="grid-container">
-        {{ graph | safe }}
+    <div>
+        {{ html| safe }}
     </div>
-
-    <script>
-        function updateLogDisplay() {
-            var dropdown = document.getElementById("logDropdown");
-            var selectedValue = dropdown.value;
-            var logs = {{ logs|safe }};
-
-            var logIndex = parseInt(selectedValue.split("_")[1]) - 1;
-            document.getElementById("logDisplay").innerText = logs[logIndex];
-        }
-    </script>
 
 </body>
 </html>
