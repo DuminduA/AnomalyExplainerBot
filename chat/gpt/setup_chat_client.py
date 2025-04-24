@@ -10,6 +10,7 @@ import langsmith
 
 from setup_langsmith_client import get_langsmith_client
 from visualization.models import BertvizAttentionData
+from explainer.bertviz_service import summarize_attention_data
 
 langsmith.debug = True
 
@@ -111,8 +112,51 @@ class GPTChat:
         
     """
 
+    prompt2 = """
+    You are an AI assistant specialized in analyzing and explaining anomalies detected in system logs using transformer-based model attention data. Your goal is to help technically proficient users understand, interpret, and resolve anomalies with high technical precision and clarity.
+
+    ## Rules of Interaction:
+    1. Only respond to questions about system logs, anomalies, attention reports, or debugging.
+    2. If the question is off-topic (e.g., general knowledge, unrelated tech), reply with:
+       "I'm here to assist with log anomaly analysis. Please ask about system logs or detected anomalies."
+    3. Use a clear, structured, and technical tone. Assume the user has a background in engineering or DevOps.
+    4. Do not define “anomaly” unless explicitly asked. Focus only on the current log context.
+
+    ## Explanation Guidelines (Using Attention Reports):
+    5. If the user asks for an explanation based on model attention data:
+       - Use the provided **attention report**, {attention_report} which includes:
+         • Token list (log tokens)
+         • Attention index pairs for each token (top attended tokens)
+         • Layer and head metadata
+
+    6. From this report, extract:
+       - Which **tokens** received the most attention (by index or label)
+       - Which **layers/heads** showed significant or unusual patterns
+       - Any repeated or sharp attention behavior (e.g., high focus on IPs, URLs, action verbs)
+
+    7. Your explanation should simulate the model’s internal reasoning:
+       - "Token A attends to Token B" → suggests structural or causal linkage
+       - Highlight cross-token dependencies that suggest suspicious transitions or misbehavior
+       - If multiple heads focus on the same relationship, emphasize its importance
+
+    8. Prioritize:
+       - High-attention interactions between IPs, ports, actions (e.g., 'Failed', 'GET'), block IDs, or directional tokens (like ‘to’, ‘from’)
+       - Heads where attention is concentrated or context-specific
+       - Unexpected attention patterns (e.g., attention to punctuation or low-signal tokens)
+
+    9. If the anomaly type is unclear, describe what made the attention behavior stand out:
+       - Did tokens attend unusually?
+       - Were rare combinations highlighted?
+       - Were irrelevant tokens ignored?
+
+    10. Always contextualize the attention insight within the **log message**. Help the user see **why** the model focused on what it did.
+
+    ## Output Format:
+    Return a concise technical analysis (Markdown or plain prose). Avoid alert-style formatting (🚨, **bold warnings**, etc.). The analysis should read like a thoughtful attention-driven investigation, not a diagnostic summary.
+    """
+
     def __get_system_prompt(self):
-        return self.prompt1
+        return self.prompt2
 
     @traceable
     def get_gpt_response(self, user_query: str, conversation_history: list, anomaly_finder_id: str):
@@ -137,43 +181,49 @@ class GPTChat:
         return response
 
     def get_formatted_prompt(self, anomaly_finder_id, prompt, user_query):
-        attention_data = BertvizAttentionData.objects.filter(anomaly_finder_id=anomaly_finder_id).first()
+        attention_data = BertvizAttentionData.objects.filter(anomaly_finder_id=anomaly_finder_id)
         if not attention_data:
             raise ValueError("Please click the visualizations button first to generate required data for explanations.")
-        attn_value = attention_data.attn[3][5]
-        tokens = attention_data.tokens
+        attn_value = attention_data.first().attn
+        tokens = attention_data.first().tokens
+
+        attention_report = summarize_attention_data(attn_value, tokens)
+        # return prompt.format(
+        #     query=user_query,
+        #     token='line',
+        #     attn_value=attn_value,
+        #     tokens=tokens
+        # )
 
         return prompt.format(
             query=user_query,
-            token='line',
-            attn_value=attn_value,
-            tokens=tokens
+            attention_report=attention_report
         )
 
-    def explain_bertviz(self, user_query, anomaly_finder_id):
-        pattern = r"layer\s+(\d+).*?token\s+(\d+)"
-        match = re.search(pattern, user_query, re.IGNORECASE)
-
-        if match:
-            layer_number = int(match.group(1))
-            token_number = int(match.group(2))
-            print(f"Layer: {layer_number}, Token: {token_number}")
-
-            attentions = BertvizAttentionData.objects().filter().first()
-
-            new_user_query = f"""Explain what the attention pattern shows for layer {layer_number}, head {token_number} 
-            for token {attentions.tokens}. Top 5 Attention data related to this is {attentions.attn[layer_number][token_number]}. 
-            Do not explain what Bertviz is and what is it used for. User is aware of the tool. 
-            It is not required to show the token sequence back to the user. 
-            Go deep into the attentions and tokens given and try to explain them as best as you can. 
-            Do not include practical uses of it. User is more focused on identifying how the model inferred the results.
-            Use attention data given for the layer to identify how the model calculated its final result.
-            """
-
-            return new_user_query
-
-        else:
-            print("Could not find layer or token number.")
+    # def explain_bertviz(self, user_query, anomaly_finder_id):
+    #     pattern = r"layer\s+(\d+).*?token\s+(\d+)"
+    #     match = re.search(pattern, user_query, re.IGNORECASE)
+    #
+    #     if match:
+    #         layer_number = int(match.group(1))
+    #         token_number = int(match.group(2))
+    #         print(f"Layer: {layer_number}, Token: {token_number}")
+    #
+    #         attentions = BertvizAttentionData.objects().filter().first()
+    #
+    #         new_user_query = f"""Explain what the attention pattern shows for layer {layer_number}, head {token_number}
+    #         for token {attentions.tokens}. Top 5 Attention data related to this is {attentions.attn[layer_number][token_number]}.
+    #         Do not explain what Bertviz is and what is it used for. User is aware of the tool.
+    #         It is not required to show the token sequence back to the user.
+    #         Go deep into the attentions and tokens given and try to explain them as best as you can.
+    #         Do not include practical uses of it. User is more focused on identifying how the model inferred the results.
+    #         Use attention data given for the layer to identify how the model calculated its final result.
+    #         """
+    #
+    #         return new_user_query
+    #
+    #     else:
+    #         print("Could not find layer or token number.")
 
 
 
