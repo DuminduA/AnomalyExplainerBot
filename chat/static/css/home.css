@@ -59,7 +59,7 @@ tr:nth-child(even) {
     background-color: green;
     color: aliceblue;
     padding: 1.2em 2em;
-    border-radius: 8px;
+    border-radius: 12px;
 
 }
 pre {
@@ -73,4 +73,76 @@ pre {
 .button-group button{
     font-size: 12px;
     font-weight: 600;
+}
+
+.clearChat {
+    color: #ffffff; background: #e00f0f; padding: 1.2em 2em; border-radius: 12px;
+}
+
+/* Dropdown container */
+.dropdown {
+    position: relative;
+    display: inline-block;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin-top: 10px;
+}
+
+/* Dropdown button */
+.dropbtn {
+    background-color: #1f3fff;
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+    border: none;
+    border-radius: 12px;
+    padding: 1.2em 2em;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.dropbtn:hover {
+    background-color: #1c36d5;
+    transform: scale(1.03);
+}
+
+/* Dropdown content */
+.dropdown-content {
+    display: none;
+    position: absolute;
+    top: 110%;
+    right: 0;
+    background-color: #ffffff;
+    min-width: 200px;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    overflow: hidden;
+    animation: fadeIn 0.2s ease-in-out;
+}
+
+/* Dropdown items */
+.dropdown-content a {
+    color: #333333;
+    padding: 14px 18px;
+    text-decoration: none;
+    display: block;
+    font-size: 15px;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.dropdown-content a:hover {
+    background-color: #f2f5ff;
+    color: #1f3fff;
+}
+
+/* Show dropdown on hover */
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+/* Simple fade-in animation */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
 }

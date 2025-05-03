@@ -1,10 +1,7 @@
 async function visualize_bert(){
-    window.location.href = 'bert-visualization';
-        // const response = await fetch('bert-visualization', {
-        //     method: 'GET',
-        //     headers: {
-        //         'Content-Type': 'application/json',
-        //         'X-CSRFToken': getCSRFToken()
-        //     },
-        // });
+  window.open('bert-visualization', '_blank');
+}
+
+async function visualize_captum(){
+  window.open('captum-visualization', '_blank');
 }

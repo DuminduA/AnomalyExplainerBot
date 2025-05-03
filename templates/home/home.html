@@ -54,9 +54,14 @@
             <button id="spinner" class="spinner" hidden></button>
 
             <button id="filterAnomaliesButton">Find anomalies</button>
-            <button id="clearChat" style="color: #ffffff; background: #e00f0f; padding: 1.2em 2em; border-radius: 8px;" onclick="clearChat()">Clear History</button>
-            <button id="viz" style="color: #ffffff; background: #0f32e0; padding: 1.2em 2em; border-radius: 8px;" onclick="visualize_bert()">Visualizations</button>
-{#            <button id="feedback" style="color: #ffffff; background: #d7ae28; padding: 10px" onclick="give_feedback()">Feedback</button>#}
+            <button id="clearChat" class="clearChat" onclick="clearChat()">Clear History</button>
+            <div class="dropdown">
+                <button class="dropbtn">Visualizations</button>
+                <div class="dropdown-content">
+                    <a onclick="visualize_bert()">BERT</a>
+                    <a onclick="visualize_captum()">Captum</a>
+                </div>
+            </div>
             <button formsappId="67f1ce68cf251a000254a395"></button>
 
         </div>
