@@ -13,12 +13,26 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 <body>
-{#  <div class="sidebar">#}
-{#    <a href="#">Home</a>#}
-{#    <a href="#">Dashboard</a>#}
-{#    <a href="#">Settings</a>#}
-{#    <a href="#">Logout</a>#}
-{#  </div>#}
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+      <div class="hamburger close" onclick="toggleSidebar()">
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+      <a href="#">Home</a>
+      <a href="#">Dashboard</a>
+      <a href="#">Settings</a>
+      <a href="#">Logout</a>
+    </div>
+
+        <!-- Menu open button (still outside) -->
+    <div class="hamburger open" onclick="toggleSidebar()" id="openBtn">
+      <div></div>
+      <div></div>
+      <div></div>
+    </div>
+
     <div id="hidden-table" hidden>
         <table id="csvTable" border="1">
             <thead>
@@ -31,7 +45,7 @@
     <div class="chat-container">
     {% csrf_token %}
         <div class="chat-header">
-            Chatbot
+            LogAnomalyExplainer
         </div>
         <div class="chat-messages" id="chatMessages">
             {% if logs %}
@@ -68,6 +82,7 @@
         <br><br>
     </div>
 
+    <script src="{% static 'js/home.js' %}"></script>
     <script src="{% static 'js/upload.js' %}"></script>
     <script src="{% static 'js/chat.js' %}"></script>
     <script src="{% static 'js/visualize.js' %}"></script>
