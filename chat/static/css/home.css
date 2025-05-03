@@ -110,7 +110,7 @@ pre {
 .dropdown-content {
     display: none;
     position: absolute;
-    top: 110%;
+    top: 95%;
     right: 0;
     background-color: #ffffff;
     min-width: 200px;
