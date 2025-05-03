@@ -7,6 +7,7 @@ from mongoengine import Document, ListField, StringField, IntField, DateTimeFiel
 class AnomalyFinderId(Document):
     uid = StringField(unique=True)
     created_at = DateTimeField(default=datetime.now())
+    session_id = StringField()
     user = StringField()
 
 

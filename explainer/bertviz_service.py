@@ -9,13 +9,33 @@ from anomaly_detecter_model.anomaly_detection_roberta_model import AnomalyDetect
 
 anomaly_detect_model_class = AnomalyDetectionRobertaModel()
 
-def get_bertviz_visualizations(attentions, inputs, anomaly_finder_id):
+def process_model_attentions(model_attentions, anomaly_finder_id, html_str_collection, model_view_str_collection, logs, save=False):
+    for a in model_attentions:
+        inputs = a.input_ids
+        attentions = a.get_attention_tensors()
+
+        html, tokens = get_bertviz_visualizations(attentions, inputs, anomaly_finder_id, save)
+
+        html_str = html._repr_html_()
+
+        model_html = get_model_visualization(attentions, inputs)
+
+        model_html_str = model_html._repr_html_()
+
+        html_str_collection.append(html_str)
+        model_view_str_collection.append(model_html_str)
+        logs.append(tokens)
+
+    return html_str_collection, model_view_str_collection, logs
+
+def get_bertviz_visualizations(attentions, inputs, anomaly_finder_id, save):
     # TODO Shall we add skip special tokens
     # tokens = anomaly_detect_model_class.tokenizer.convert_ids_to_tokens(inputs.get('input_ids')[0], skip_special_tokens=True)
     tokens = anomaly_detect_model_class.tokenizer.convert_ids_to_tokens(inputs)
 
     html = head_view(attentions, tokens, html_action="return")
-    save_bertviz_head_view(html.data, anomaly_finder_id)
+    if save:
+        save_bertviz_head_view(html.data, anomaly_finder_id)
     return html, ' '.join(tokens)
 
 def get_model_visualization(attentions, inputs):
@@ -33,14 +53,11 @@ def save_bertviz_head_view(head_view_html, anomaly_finder_id):
 
         try:
             params = json.loads(params_str)
-            print("Successfully parsed params!")
 
             attentions = params["attention"][0]
             attentions.pop("name")
             attentions.pop("right_text")
             attentions["tokens"] = attentions.pop("left_text")
-
-            # attentions['attn'] = summarize_attention_data(attentions["attn"], len(attentions["tokens"]))
 
             attention_data = BertvizAttentionData(tokens=attentions["tokens"], attn=attentions['attn'], anomaly_finder_id=anomaly_finder_id)
             attention_data.save()
@@ -51,27 +68,6 @@ def save_bertviz_head_view(head_view_html, anomaly_finder_id):
     else:
         print("Couldn't find 'params' in the HTML.")
         return None
-
-# def summarize_attention_data(attentions, num_tokens):
-#     num_layers = len(attentions)
-#     num_heads = len(attentions[0])
-#
-#     top_k = 2
-#     top_indices_structure = []
-#
-#     for layer in range(num_layers):
-#         layer_list = []
-#         for head in range(num_heads):
-#             head_list = []
-#             for token_idx in range(num_tokens):
-#                 attn_vector = attentions[layer][head][token_idx]
-#                 top_indices = [int(i) for i in np.argsort(attn_vector)[-top_k:][::-1]]
-#                 head_list.append(top_indices)
-#             layer_list.append(head_list)
-#         top_indices_structure.append(layer_list)
-#
-#     return top_indices_structure
-
 
 def summarize_attention_data(attentions, tokens, top_k=5, special_tokens=["[CLS]", "[SEP]", "<s>"]):
     """
