@@ -1,8 +1,6 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout, authenticate
 
-from django.contrib import messages
-
 def login_user(request):
     if request.method == 'POST':
         username = request.POST['username']
@@ -14,6 +12,10 @@ def login_user(request):
         else:
             return render(request, 'forbidden.html', {})
     return render(request, 'login.html', {})
+
+def logout_user(request):
+    logout(request)
+    return redirect('user_login')
 
 
 

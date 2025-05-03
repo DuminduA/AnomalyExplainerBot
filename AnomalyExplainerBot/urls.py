@@ -31,7 +31,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('chat.urls')),
     path('login/', include('django.contrib.auth.urls')),
-    path('login/', include('chatusers.urls')),
+    path('users/', include('chatusers.urls')),
     path('api/', include(router.urls)),
     path('bert-visualization/', bert_attention_view, name='bert_visualization'),
     path('captum-visualization/', captum_attention_view, name='captum_visualization'),
