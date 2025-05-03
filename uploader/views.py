@@ -35,3 +35,6 @@ class UploaderViewSet(viewsets.ViewSet):
     def create_new_anomaly_finder(self, user_id):
         anomaly_finder = AnomalyFinderId(uid=str(uuid.uuid4()), user=str(user_id)).save()
         return anomaly_finder
+
+    def create_new_session(self, request):
+        request.session.flush()
