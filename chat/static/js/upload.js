@@ -88,7 +88,7 @@ document.getElementById('filterAnomaliesButton').addEventListener('click', async
             body: JSON.stringify(requestData)
         });
 
-        if (!response.ok) {
+        if (response.status >= 500) {
             throw new Error(`Server responded with ${response.status}`);
         }
 

@@ -17,9 +17,9 @@ class UploaderViewSet(viewsets.ViewSet):
         log_data = request.data.get("log_data", [])
 
         if not log_data:
-            return Response({"error": "No log data provided."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"message": "❌ No log data provided."}, status=status.HTTP_400_BAD_REQUEST)
         if len(log_data)> 10:
-            return Response({"error": "Too many log data uploaded. Please only give files with at most 10 logs."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"message": "❌ Too many log data uploaded. Please only give files with at most 10 logs."}, status=status.HTTP_400_BAD_REQUEST)
 
         message = request.data.get("message", "")
         file = request.data.get("file", "")
