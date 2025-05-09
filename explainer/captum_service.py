@@ -47,7 +47,7 @@ def visualize_log_attribution_old(request):
 
     tokens = tokenizer.convert_ids_to_tokens(input_ids[0])
 
-    lig = LayerIntegratedGradients(forward_func, model.bert.embeddings)
+    lig = LayerIntegratedGradients(forward_func, model.roberta.embeddings)
 
     # Compute attributions
     attributions, delta = lig.attribute(
@@ -97,7 +97,7 @@ def visualize_log_attribution(anomaly_finder_id):
         tokens = tokenizer.convert_ids_to_tokens(input_ids[0])
 
         # Attribution computation
-        lig = LayerIntegratedGradients(forward_func, model.bert.embeddings)
+        lig = LayerIntegratedGradients(forward_func, model.roberta.embeddings)
         attributions, delta = lig.attribute(
             inputs=input_ids,
             additional_forward_args=(attention_mask,),
