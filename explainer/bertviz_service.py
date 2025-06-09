@@ -4,6 +4,7 @@ import re
 import numpy as np
 from bertviz import head_view, model_view
 
+from uploader.models import UploadLog
 from visualization.models import BertvizAttentionData
 from anomaly_detecter_model.anomaly_detection_roberta_model import AnomalyDetectionRobertaModel
 
@@ -13,12 +14,13 @@ def process_model_attentions(model_attentions, anomaly_finder_id, html_str_colle
     for a in model_attentions:
         inputs = a.input_ids
         attentions = a.get_attention_tensors()
+        tokens_init = anomaly_detect_model_class.tokenizer.convert_ids_to_tokens(inputs)
 
-        html, tokens = get_bertviz_visualizations(attentions, inputs, anomaly_finder_id, save)
+        html, tokens = get_bertviz_visualizations(attentions, tokens_init, anomaly_finder_id, save)
 
         html_str = html._repr_html_()
 
-        model_html = get_model_visualization(attentions, inputs)
+        model_html = get_model_visualization(attentions, tokens_init)
 
         model_html_str = model_html._repr_html_()
 
@@ -28,19 +30,16 @@ def process_model_attentions(model_attentions, anomaly_finder_id, html_str_colle
 
     return html_str_collection, model_view_str_collection, logs
 
-def get_bertviz_visualizations(attentions, inputs, anomaly_finder_id, save):
+def get_bertviz_visualizations(attentions, tokens, anomaly_finder_id, save):
     # TODO Shall we add skip special tokens
     # tokens = anomaly_detect_model_class.tokenizer.convert_ids_to_tokens(inputs.get('input_ids')[0], skip_special_tokens=True)
-    tokens = anomaly_detect_model_class.tokenizer.convert_ids_to_tokens(inputs)
 
     html = head_view(attentions, tokens, html_action="return")
     if save:
         save_bertviz_head_view(html.data, anomaly_finder_id)
     return html, ' '.join(tokens)
 
-def get_model_visualization(attentions, inputs):
-    tokens = anomaly_detect_model_class.tokenizer.convert_ids_to_tokens(inputs, skip_special_tokens=False)
-
+def get_model_visualization(attentions, tokens):
     html = model_view(attentions, tokens, html_action="return")
     return html
 
@@ -262,3 +261,14 @@ def summarize_attention_data(attentions, tokens, top_k=5,
         report.extend(f"- {bias}" for bias in bias_info)
 
     return "\n".join(report)
+
+def filter_model_attentions(model_attentions, anomaly_finder_id):
+    log_record = UploadLog.objects.filter(anomaly_finder_id=anomaly_finder_id).get()
+    filtered_list = []
+    for lidx, log in enumerate(log_record.logs):
+        for idx, attn in enumerate(model_attentions):
+            if attn.log == log and log_record.predicted_class[idx]==1:
+                filtered_list.append(attn)
+            elif lidx == len(log_record.logs) - 1 and idx == len(model_attentions) -2:
+                filtered_list.append(attn)
+    return filtered_list
