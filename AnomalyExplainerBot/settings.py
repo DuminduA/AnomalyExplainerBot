@@ -186,6 +186,11 @@ LOGGING = {
             "filename": os.path.join(LOGGING_DIR, "django.log"),
             "formatter": "verbose",
         },
+        "console": {
+            "level": "DEBUG",
+            "class": "logging.StreamHandler",
+            "formatter": "simple",
+        },
     },
     "loggers": {
         "django": {
