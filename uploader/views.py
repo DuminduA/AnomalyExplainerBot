@@ -1,3 +1,4 @@
+import http.client
 import uuid
 
 from rest_framework import viewsets, status
@@ -14,6 +15,9 @@ class UploaderViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['post'])
     def find_anomalies(self, request):
+        if not request.user.is_authenticated:
+            return Response({"message": "Forbidden"}, status=http.client.FORBIDDEN)
+
         log_data = request.data.get("log_data", [])
 
         if not log_data:
