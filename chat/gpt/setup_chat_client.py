@@ -2,7 +2,7 @@ import re
 
 import openai
 from django.conf import settings
-from langchain_core.messages import SystemMessage, HumanMessage
+from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 from langchain_core.prompts import ChatPromptTemplate, SystemMessagePromptTemplate
 from langchain_openai import ChatOpenAI
 from langsmith import traceable
@@ -15,9 +15,11 @@ from explainer.bertviz_service import summarize_attention_data
 langsmith.debug = True
 
 class GPTChat:
-    client = openai.OpenAI(api_key=settings.OPENAI_API_KEY)
+    no_api_key_message = "Chat is unavailable because no OpenAI API key is configured. Set OPENAI_API_KEY to enable it."
+
+    client = openai.OpenAI(api_key=settings.OPENAI_API_KEY) if settings.OPENAI_API_KEY else None
     langsmith_cl = get_langsmith_client()
-    model = ChatOpenAI(model='gpt-4o', temperature=0)
+    model = ChatOpenAI(model='gpt-4o', temperature=0, api_key=settings.OPENAI_API_KEY) if settings.OPENAI_API_KEY else None
     # prompt1 = """
     #             You are an AI assistant specialized in answering questions related to anomaly log analysis.
     #             Your purpose is to help users understand, interpret, and resolve anomalies detected in system logs.
@@ -160,6 +162,8 @@ class GPTChat:
 
     @traceable
     def get_gpt_response(self, user_query: str, conversation_history: list, anomaly_finder_id: str):
+        if self.model is None:
+            return AIMessage(content=self.no_api_key_message)
 
         messages = []
         for msg in conversation_history:

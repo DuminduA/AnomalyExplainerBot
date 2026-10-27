@@ -201,7 +201,7 @@ LOGGING = {
     },
 }
 
-OPENAI_API_KEY=os.environ.get("OPENAI_API_KEY", 'test')
+OPENAI_API_KEY=os.environ.get("OPENAI_API_KEY")
 HUGGING_FACE_WRITE_API_KEY=os.environ.get("HUGGING_FACE_WRITE_API_KEY", 'test')
 
 LANGSMITH_TRACING_V2=True
