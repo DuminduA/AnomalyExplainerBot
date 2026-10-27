@@ -9,8 +9,10 @@ from langsmith.wrappers import wrap_openai
 @traceable
 class GPTAnomalyAnalyzer:
 
-    client = wrap_openai(openai.OpenAI(api_key=settings.OPENAI_API_KEY))
-    model = ChatOpenAI(model='gpt-4o', temperature=0)
+    no_api_key_message = "Anomaly detected. No OpenAI API key is configured, so a detailed explanation is unavailable."
+
+    client = wrap_openai(openai.OpenAI(api_key=settings.OPENAI_API_KEY)) if settings.OPENAI_API_KEY else None
+    model = ChatOpenAI(model='gpt-4o', temperature=0, api_key=settings.OPENAI_API_KEY) if settings.OPENAI_API_KEY else None
 
     def __get_system_prompt(self):
         return """
@@ -40,6 +42,9 @@ class GPTAnomalyAnalyzer:
                 """
 
     def get_gpt_response(self, log_data: list):
+        if self.model is None:
+            return [f"{self.no_api_key_message}\n\n🔍 Log Snippet:\n`{log}`" for log in log_data]
+
         results = []
 
         prompt = ChatPromptTemplate.from_messages([
