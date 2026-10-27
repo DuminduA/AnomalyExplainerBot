@@ -10,7 +10,10 @@ def login_user(request):
             login(request, user)
             return redirect('home')
         else:
-            return render(request, 'forbidden.html', {})
+            return render(request, 'login.html', {
+                'error': 'Invalid username or password. Please try again.',
+                'username': username,
+            }, status=401)
     return render(request, 'login.html', {})
 
 def logout_user(request):

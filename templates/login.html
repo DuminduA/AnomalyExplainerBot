@@ -92,7 +92,7 @@
 
             <div class="form-group">
                 <label for="username">Username</label>
-                <input type="text" id="username" name="username" required>
+                <input type="text" id="username" name="username" value="{{ username|default:'' }}" required>
             </div>
 
             <div class="form-group">
@@ -100,13 +100,9 @@
                 <input type="password" id="password" name="password" required>
             </div>
 
-            {% if form.errors %}
+            {% if error %}
                 <div class="error">
-                    {% for field in form %}
-                        {% for error in field.errors %}
-                            <p>{{ error }}</p>
-                        {% endfor %}
-                    {% endfor %}
+                    <p>{{ error }}</p>
                 </div>
             {% endif %}
 
