@@ -57,6 +57,19 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'AnomalyExplainerBot.urls'
 
+# Views decorated with @login_required redirect here when the user is not
+# authenticated (chat/views.py, visualization/views.py).
+LOGIN_URL = 'user_login'
+
+# Require authentication by default on every DRF endpoint, so new
+# viewsets/actions are protected automatically instead of relying on each
+# handler to add its own check.
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+}
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
