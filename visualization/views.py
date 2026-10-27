@@ -1,3 +1,4 @@
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 
 from anomaly_detecter_model.anomaly_detection_roberta_model import AnomalyDetectionRobertaModel
@@ -10,6 +11,7 @@ from visualization.models import ModelAttentions
 
 anomaly_detect_model_class = AnomalyDetectionRobertaModel()
 
+@login_required
 def bert_attention_view(request):
     if request.method == "GET":
         print("Bertviz visualization...")
@@ -52,6 +54,7 @@ from captum.attr import IntegratedGradients
 
 
 ig = IntegratedGradients(anomaly_detect_model_class.model)
+@login_required
 def captum_attention_view(request):
     if request.method == "GET":
         print("Captum visualization...")
