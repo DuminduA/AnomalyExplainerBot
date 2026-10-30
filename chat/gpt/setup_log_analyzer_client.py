@@ -1,3 +1,5 @@
+import logging
+
 import openai
 from django.conf import settings
 from langchain_core.prompts import ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate
@@ -6,10 +8,14 @@ from langsmith import traceable
 
 from langsmith.wrappers import wrap_openai
 
+logger = logging.getLogger(__name__)
+
+
 @traceable
 class GPTAnomalyAnalyzer:
 
     no_api_key_message = "Anomaly detected. No OpenAI API key is configured, so a detailed explanation is unavailable."
+    api_error_message = "Anomaly detected, but the explanation could not be generated because the OpenAI service is currently unavailable."
 
     client = wrap_openai(openai.OpenAI(api_key=settings.OPENAI_API_KEY)) if settings.OPENAI_API_KEY else None
     model = ChatOpenAI(model='gpt-4o', temperature=0, api_key=settings.OPENAI_API_KEY) if settings.OPENAI_API_KEY else None
@@ -54,7 +60,12 @@ class GPTAnomalyAnalyzer:
 
         for log in log_data:
             formatted_prompt = prompt.format_messages(log_data=log)
-            response = self.model.invoke(formatted_prompt)
+            try:
+                response = self.model.invoke(formatted_prompt)
+            except openai.APIError:
+                logger.exception("OpenAI API call failed while generating an anomaly explanation.")
+                results.append(f"{self.api_error_message}\n\n🔍 Log Snippet:\n`{log}`")
+                continue
             results.append(response.content)
 
         return results

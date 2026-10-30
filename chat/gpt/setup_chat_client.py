@@ -1,3 +1,4 @@
+import logging
 import re
 
 import openai
@@ -14,8 +15,12 @@ from explainer.bertviz_service import summarize_attention_data
 
 langsmith.debug = True
 
+logger = logging.getLogger(__name__)
+
+
 class GPTChat:
     no_api_key_message = "Chat is unavailable because no OpenAI API key is configured. Set OPENAI_API_KEY to enable it."
+    api_error_message = "Chat is temporarily unavailable because the OpenAI service could not be reached. Please try again in a moment."
 
     client = openai.OpenAI(api_key=settings.OPENAI_API_KEY) if settings.OPENAI_API_KEY else None
     langsmith_cl = get_langsmith_client()
@@ -180,7 +185,12 @@ class GPTChat:
         ])
 
         formatted_prompt = self.get_formatted_prompt(anomaly_finder_id, prompt, user_query)
-        response = self.model.invoke(formatted_prompt)
+
+        try:
+            response = self.model.invoke(formatted_prompt)
+        except openai.APIError:
+            logger.exception("OpenAI API call failed while generating a chat response.")
+            return AIMessage(content=self.api_error_message)
 
         return response
 
