@@ -19,10 +19,15 @@ class BertvizAttentionData(Document):
 
 
 class CaptumAttentionData(Document):
-    attributions = ListField()
-    delta = ListField()
-    created_at = DateTimeField(default=datetime.now())
+    """Cached Captum (Layer Integrated Gradients) result for one log line of an analysis."""
     anomaly_finder_id = StringField()
+    log = StringField()
+    tokens = ListField(StringField())
+    attributions = ListField(FloatField())  # normalised attribution per token
+    delta = FloatField()                    # convergence delta of the integration
+    pred_class = IntField()
+    pred_prob = FloatField()
+    created_at = DateTimeField(default=datetime.now)
 
 
 class ModelAttentions(Document):

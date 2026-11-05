@@ -8,7 +8,7 @@ from django.utils.safestring import mark_safe
 
 from anomaly_detecter_model.anomaly_detection_roberta_model import AnomalyDetectionRobertaModel
 from uploader.models import UploadLog
-from visualization.models import AnomalyFinderId
+from visualization.models import AnomalyFinderId, CaptumAttentionData
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -84,53 +84,81 @@ def visualize_log_attribution_old(request):
     return html._repr_html_()
 
 
+def compute_log_attribution(log_text, anomaly_finder_id):
+    """Run Layer Integrated Gradients for one log line and store the result."""
+    inputs = tokenizer(log_text, return_tensors="pt", truncation=True, padding=True)
+    input_ids = inputs["input_ids"].to(device)
+    attention_mask = inputs["attention_mask"].to(device)
+
+    tokens = tokenizer.convert_ids_to_tokens(input_ids[0])
+
+    # Attribution computation (the expensive part: 50 integration steps)
+    lig = LayerIntegratedGradients(forward_func, model.roberta.embeddings)
+    attributions, delta = lig.attribute(
+        inputs=input_ids,
+        additional_forward_args=(attention_mask,),
+        return_convergence_delta=True,
+        n_steps=50
+    )
+
+    # Normalize
+    attr_sum = summarize_attributions(attributions)
+
+    # Prediction
+    with torch.no_grad():
+        logits = predict(input_ids, attention_mask)
+        pred_class = torch.argmax(logits, dim=-1).item()
+        pred_prob = torch.softmax(logits, dim=1)[0][pred_class].item()
+
+    delta_val = delta.item() if isinstance(delta, torch.Tensor) else float(delta)
+
+    record = CaptumAttentionData(
+        anomaly_finder_id=anomaly_finder_id,
+        log=log_text,
+        tokens=tokens,
+        attributions=attr_sum.detach().cpu().tolist(),
+        delta=delta_val,
+        pred_class=pred_class,
+        pred_prob=pred_prob,
+    )
+    record.save()
+    return record
+
+
+def _to_visualization_record(attribution):
+    label = "Anomaly" if attribution.pred_class == 1 else "Normal"
+    return viz.VisualizationDataRecord(
+        word_attributions=torch.tensor(attribution.attributions),
+        pred_prob=attribution.pred_prob,
+        pred_class=label,
+        true_class="",
+        attr_class=attribution.pred_class,
+        attr_score=attribution.delta,
+        raw_input_ids=attribution.tokens,
+        convergence_score=attribution.delta
+    )
+
+
 def visualize_log_attribution(anomaly_finder_id):
-
+    """
+    Build the Captum page for an analysis. Attributions are computed on demand
+    the first time the page is opened and cached in CaptumAttentionData, so
+    each log line of an analysis is attributed at most once.
+    """
     logs = UploadLog.objects.filter(anomaly_finder_id=anomaly_finder_id).first().logs
+
+    cached = {
+        entry.log: entry
+        for entry in CaptumAttentionData.objects.filter(anomaly_finder_id=anomaly_finder_id)
+    }
+
     visualizations = []
-
     for log_text in logs:
-        inputs = tokenizer(log_text, return_tensors="pt", truncation=True, padding=True)
-        input_ids = inputs["input_ids"].to(device)
-        attention_mask = inputs["attention_mask"].to(device)
-
-        tokens = tokenizer.convert_ids_to_tokens(input_ids[0])
-
-        # Attribution computation
-        lig = LayerIntegratedGradients(forward_func, model.roberta.embeddings)
-        attributions, delta = lig.attribute(
-            inputs=input_ids,
-            additional_forward_args=(attention_mask,),
-            return_convergence_delta=True,
-            n_steps=50
-        )
-
-        # Normalize
-        attr_sum = summarize_attributions(attributions)
-
-        # Prediction
-        with torch.no_grad():
-            logits = predict(input_ids, attention_mask)
-            pred_class = torch.argmax(logits, dim=-1).item()
-            pred_prob = torch.softmax(logits, dim=1)[0][pred_class].item()
-
-        # Convert delta
-        delta_val = delta.item() if isinstance(delta, torch.Tensor) else delta
-        label = "Anomaly" if pred_class == 1 else "Normal"
-
-        # Captum record
-        record = viz.VisualizationDataRecord(
-            word_attributions=attr_sum,
-            pred_prob=pred_prob,
-            pred_class=label,
-            true_class="",
-            attr_class=pred_class,
-            attr_score=delta_val,
-            raw_input_ids=tokens,
-            convergence_score=delta_val
-        )
-
-        visualizations.append(record)
+        attribution = cached.get(log_text)
+        if attribution is None:
+            attribution = compute_log_attribution(log_text, anomaly_finder_id)
+            cached[log_text] = attribution
+        visualizations.append(_to_visualization_record(attribution))
 
     # Combine all visualizations
     html_output = viz.visualize_text(visualizations)
